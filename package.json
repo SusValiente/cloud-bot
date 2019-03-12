@@ -1,0 +1,15 @@
+{
+  "name": "cloud_bot",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "nodemon index.js",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "bottender": "0.15.17",
+    "dotenv": "^6.2.0",
+    "ngrok": "^2.2.15",
+    "nodemon": "1.18.10"
+  }
+}

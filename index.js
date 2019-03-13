@@ -1,16 +1,9 @@
-require('dotenv').config();
-const { TelegramBot } = require('bottender');
 const { createServer } = require('bottender/express');
+const { bot, handler } = require('./handlers');
 
-const config = require('./bottender.config.js').telegram;
+require('dotenv').config();
 
-const bot = new TelegramBot({
-  accessToken: config.accessToken,
-});
-
-bot.onEvent(async context => {
-  await context.sendMessage('Hello World');
-});
+bot.onEvent(handler);
 
 const server = createServer(bot, { ngrok: true });
 

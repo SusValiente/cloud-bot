@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "attach",
+            "name": "Attach to Process",
+            "port": 5861,
+            "restart": true,
+            "protocol": "inspector"
+        }
+    ]
+}

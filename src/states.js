@@ -1,10 +1,10 @@
 const registerState = {
     registeringName: true,
-    registeringPassword: false
-};
-
-const initialState = {
-    nickname: null
+    registeringPassword: false,
 }
 
-module.exports = { registerState, initialState };
+const initialState = {
+    nickname: null,
+}
+
+module.exports = { registerState, initialState }

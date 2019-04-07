@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "nodemon --inspect=5861 index.js",
-    "start": "node index.js"
+    "start": "node index.js",
+    "prettier:write": "prettier --write ./src/**/*.js index.js"
   },
   "dependencies": {
     "@types/node": "^11.11.8",
@@ -13,6 +14,7 @@
     "lodash": "^4.17.11",
     "ngrok": "^2.2.15",
     "nodemon": "1.18.10",
+    "prettier": "^1.16.4",
     "reflect-metadata": "^0.1.13",
     "sqlite3": "^4.0.6",
     "typeorm": "^0.2.16"

@@ -1,49 +1,38 @@
-const typeorm = require('typeorm');
-const { createServer } = require('bottender/express');
-const { TelegramBot } = require('bottender');
-const config = require('./bottender.config.js').telegram;
-const { handler } = require('./src/handlers');
-const { UserModel } = require('./src/models/user').User;
-const { UserEntity } = require('./src/entities/user');
-
-require('dotenv').config();
-
-// typeorm config
-typeorm.createConnection({
-  type: 'sqlite',
-  database: '/db/cloud-bot.db',
-  entities: [UserEntity],
-  logging: true
-}).then(function (connection) {
-  const firstUser = {
-    id: '1',
-    username: 'John doe',
-    password: '4242'
-  };
-
-  const userRepository = connection.getRepository('User').save(firstUser).then(function (savedUser) {
-    console.log("User has been saved: ", savedUser);
-    return userRepository.find();
-  })
-
-}).catch(function (error) {
-  console.log("Error: ", error);
-});
-
+const typeorm = require('typeorm')
+const { createServer } = require('bottender/express')
+const { TelegramBot } = require('bottender')
+const config = require('./bottender.config.js').telegram
+const { handler } = require('./src/handlers')
+const _ = require('lodash')
+require('dotenv').config()
 
 // bot initialization
 const bot = new TelegramBot({
-  accessToken: config.accessToken,
-});
+    accessToken: config.accessToken,
+})
+// typeorm initialization
+const connection = typeorm
+    .createConnection({
+        type: 'sqlite',
+        name: 'typeorm',
+        database: './db/cloud-bot.db',
+        entities: [require('./src/entities/User')],
+        logging: true,
+    })
+    .then(async function(connection) {
+        console.log('Connected successfully: ' + !_.isNull(connection))
+    })
+    .catch(function(error) {
+        console.error(`Connection Error` + error)
+    })
 
+bot.onEvent(handler)
 
-// bot.setInitialState(states.initialState);
-bot.onEvent(handler);
-
-const server = createServer(bot, { ngrok: true });
-
+const server = createServer(bot, { ngrok: true })
 
 // Telegram currently only supports four ports for webhooks: 443, 80, 88 and 8443
 server.listen(process.env.PORT, () => {
-  console.log(`server is running on ${process.env.PORT} port...`);
-});
+    console.log(`server is running on ${process.env.PORT} port...`)
+})
+
+module.exports = { connection }

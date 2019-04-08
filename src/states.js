@@ -1,10 +1,10 @@
-const registerState = {
-    registeringName: true,
-    registeringPassword: false,
+const status = {
+    registering: false,
+    logging: false,
+    currentUser: null,
+    registeredName: null,
+    registeredPassword: null,
+    registeredRepeatPassword: null
 }
 
-const initialState = {
-    nickname: null,
-}
-
-module.exports = { registerState, initialState }
+module.exports = { status }

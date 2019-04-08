@@ -4,12 +4,15 @@ const { TelegramBot } = require('bottender')
 const config = require('./bottender.config.js').telegram
 const { handler } = require('./src/handlers')
 const _ = require('lodash')
+const { status } = require('./src/states')
 require('dotenv').config()
 
 // bot initialization
 const bot = new TelegramBot({
     accessToken: config.accessToken,
 })
+
+bot.setInitialState(status)
 // typeorm initialization
 const connection = typeorm
     .createConnection({
@@ -19,10 +22,10 @@ const connection = typeorm
         entities: [require('./src/entities/User')],
         logging: true,
     })
-    .then(async function(connection) {
+    .then(async function (connection) {
         console.log('Connected successfully: ' + !_.isNull(connection))
     })
-    .catch(function(error) {
+    .catch(function (error) {
         console.error(`Connection Error` + error)
     })
 

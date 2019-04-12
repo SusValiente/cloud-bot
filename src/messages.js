@@ -4,8 +4,14 @@ const startCommandMessage = 'Bienvenido ! Mi nombre es cloud-bot y estoy aquí p
 const unknownUser = 'Lo siento pero no se quien eres . . ¿Porque no pruebas a registrarte o iniciar sesion?';
 // - - - - - - - - - -  Register messages - - - - - - - - - - - - -
 
-const regAskName = 'Dime tu nombre';
-const regAskPassword = 'Dime tu contraseña';
+const regAskName = `Vas a proceder a registrarte en mi base de datos, para ello, primero dime que nombre de usuario quieres`;
+const askPassword = 'Ahora dime tu contraseña';
+
+const logAskName = `Vas a proceder a identificarte como un usuario registrado, primero, dime tu nombre de usuario`;
+const logNameNotFound = `Lo siento, no encuentro ningun usuario con ese nombre, prueba de nuevo`;
+const wrongUsername = 'Tu contraseña no es correcta, prueba de nuevo porfavor';
+
+const tryAgain = 'Vuelve a intentarlo porfavor';
 
 // - - - - - - - - - -  Help messages - - - - - - - - - - - - -
 
@@ -19,8 +25,12 @@ const helpCommandMessage = `
 const messages = {
     startCommandMessage: startCommandMessage,
     regAskName: regAskName,
-    regAskPassword: regAskPassword,
+    askPassword: askPassword,
     helpCommandMessage,
+    logAskName: logAskName,
+    tryAgain: tryAgain,
+    wrongUsername: wrongUsername,
+    logNameNotFound: logNameNotFound,
     unknownUser: unknownUser,
 };
 

@@ -6,7 +6,6 @@ const { User } = require('./models/user');
 
 const handler = new TelegramHandler()
     .onText(async context => {
-
         const connection = typeorm.getConnection('typeorm');
         const userRepository = connection.getRepository(User);
 
@@ -36,15 +35,62 @@ const handler = new TelegramHandler()
                     break;
                 case '/register':
                     // - - - - - - - - Setting register status - - - - - - - - -
-                    if (!context.state.registering) {
+                    if (!context.state.registering && _.isNull(context.state.currentUser)) {
                         context.setState({
                             registering: true,
+                            logging: false,
                         });
                         await context.sendText(messages.regAskName);
+                    }
+                    if (!_.isNull(context.state.currentUser)) {
+                        await context.sendText(
+                            'Ya estas registrado, si tu no eres ' + context.state.currentUser + ' puedes cerrar sesion con /start y registrarte'
+                        );
                     }
                     break;
 
                 case '/login':
+                    // - - - - - - - - Setting logging status - - - - - - - - -
+                    if (!context.state.logging) {
+                        context.setState({
+                            logging: true,
+                            registering: false,
+                        });
+                        await context.sendText(messages.logAskName);
+                    }
+                    break;
+
+                case '/logout':
+                    if (context.state.currentUser) {
+                        context.resetState();
+                        await context.sendText('Bye!');
+                    } else {
+                        await context.sendText('No se quien eres pero . . . hasta luego !');
+                    }
+                    break;
+
+                case '/dropbox_login':
+                    context.setState({
+                        logging: false,
+                        registering: false,
+                    });
+                    if (!context.state.currentUser) {
+                        await context.sendText(messages.pleaseLogIn);
+                    } else {
+                        await context.sendText('Todavia no he implementado esta parte . .  no seas ansias');
+                    }
+                    break;
+
+                case '/dropbox_register':
+                    context.setState({
+                        logging: false,
+                        registering: false,
+                    });
+                    if (!context.state.currentUser) {
+                        await context.sendText(messages.pleaseLogIn);
+                    } else {
+                        await context.sendText('Todavia no he implementado esta parte . .  no seas ansias');
+                    }
                     break;
 
                 case '/help':
@@ -52,9 +98,9 @@ const handler = new TelegramHandler()
                     break;
 
                 default:
-                    // - - - - - - - - - - - - - - - - - - - - - - - - - -    
-                    // - - - - - - - - Registering user - - - - - - - - -
-                    // - - - - - - - - - - - - - - - - - - - - - - - - - -
+                    // # # # # # # # # # # # # # # # # # # # # # # # # # #
+                    // # # # # # # # # Registering user # # # # # # # # #
+                    // # # # # # # # # # # # # # # # # # # # # # # # # # #
                     if (context.state.registering) {
                         if (_.isNull(context.state.registeredName) || _.isEmpty(context.state.registeredName)) {
                             if (!_.isUndefined(await userRepository.findOne({ username: context.event.text }))) {
@@ -64,7 +110,7 @@ const handler = new TelegramHandler()
                                 context.setState({
                                     registeredName: context.event.text,
                                 });
-                                await context.sendText(messages.regAskPassword);
+                                await context.sendText(messages.askPassword);
                             }
                         } else {
                             if (_.isNull(context.state.registeredPassword) || _.isEmpty(context.state.registeredPassword)) {
@@ -83,14 +129,40 @@ const handler = new TelegramHandler()
                                     context.setState({
                                         registering: false,
                                         currentUser: context.state.registeredName,
+                                        registeredName: null,
+                                        registeredPassword: null,
                                     });
                                 }
                             }
                         }
                     }
-                    // - - - - - - - - - - - - - - - - - - - - - - - - - -    
-                    // - - - - - - - - - - - - - - - - - - - - - - - - - -
-                    // - - - - - - - - - - - - - - - - - - - - - - - - - -
+                    // # # # # # # # # # # # # # # # # # # # # # # # # # #
+                    // # # # # # # # # Logging user  # # # # # # # # # # #
+                    // # # # # # # # # # # # # # # # # # # # # # # # # # #
+                    if (context.state.logging) {
+                        if (_.isNull(context.state.loggedName) || _.isEmpty(context.state.loggedName)) {
+                            if (_.isNull(context.state.loggedName) && _.isUndefined(await userRepository.findOne({ username: context.event.text }))) {
+                                await context.sendText(messages.logNameNotFound);
+                                await context.sendText(messages.tryAgain);
+                            } else {
+                                context.setState({
+                                    loggedName: context.event.text,
+                                });
+                                await context.sendText(messages.askPassword);
+                            }
+                        } else {
+                            if (_.isUndefined(await userRepository.findOne({ username: context.state.loggedName, password: context.event.text }))) {
+                                await context.sendText(messages.wrongUsername);
+                            } else {
+                                context.setState({
+                                    currentUser: context.state.loggedName,
+                                    loggedName: null,
+                                    logging: false,
+                                });
+                                await context.sendText('Bienvenido ! ' + context.state.currentUser);
+                            }
+                        }
+                    }
                     break;
             }
         }

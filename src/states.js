@@ -4,7 +4,7 @@ const status = {
     currentUser: null,
     registeredName: null,
     registeredPassword: null,
-    registeredRepeatPassword: null,
+    loggedName: null,
 };
 
 module.exports = { status };

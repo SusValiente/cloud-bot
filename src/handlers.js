@@ -35,7 +35,7 @@ const handler = new TelegramHandler()
                     break;
                 case '/register':
                     // - - - - - - - - Setting register status - - - - - - - - -
-                    if (!context.state.registering) {
+                    if (!context.state.registering && _.isNull(context.state.currentUser)) {
                         context.setState({
                             registering: true,
                             logging: false,
@@ -57,6 +57,39 @@ const handler = new TelegramHandler()
                             registering: false,
                         });
                         await context.sendText(messages.logAskName);
+                    }
+                    break;
+
+                case '/logout':
+                    if (context.state.currentUser) {
+                        context.resetState();
+                        await context.sendText('Bye!');
+                    } else {
+                        await context.sendText('No se quien eres pero . . . hasta luego !');
+                    }
+                    break;
+
+                case '/dropbox_login':
+                    context.setState({
+                        logging: false,
+                        registering: false,
+                    });
+                    if (!context.state.currentUser) {
+                        await context.sendText(messages.pleaseLogIn);
+                    } else {
+                        await context.sendText('Todavia no he implementado esta parte . .  no seas ansias');
+                    }
+                    break;
+
+                case '/dropbox_register':
+                    context.setState({
+                        logging: false,
+                        registering: false,
+                    });
+                    if (!context.state.currentUser) {
+                        await context.sendText(messages.pleaseLogIn);
+                    } else {
+                        await context.sendText('Todavia no he implementado esta parte . .  no seas ansias');
                     }
                     break;
 

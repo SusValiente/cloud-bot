@@ -1,5 +1,5 @@
-const EntitySchema = require('typeorm').EntitySchema
-const User = require('../models/user').User
+const EntitySchema = require('typeorm').EntitySchema;
+const User = require('../models/user').User;
 
 module.exports = new EntitySchema({
     name: 'User',
@@ -17,4 +17,4 @@ module.exports = new EntitySchema({
             type: 'varchar',
         },
     },
-})
+});

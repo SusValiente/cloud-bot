@@ -8,14 +8,14 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 // TYPESCRIPT IMPORTS
-const bottender_config_1 = require("./bottender.config");
+const bottender_config_1 = require("../bottender.config");
 const typeorm_1 = require("typeorm");
-const user_1 = require("./src/entities/user");
-const text_manager_1 = require("./src/manager/text.manager");
-const callback_manager_1 = require("./src/manager/callback.manager");
+const user_1 = require("./entities/user");
+const text_manager_1 = require("./manager/text.manager");
+const callback_manager_1 = require("./manager/callback.manager");
 const _ = __importStar(require("lodash"));
-const task_1 = require("./src/entities/task");
-const dropbox_1 = require("./src/entities/dropbox");
+const task_1 = require("./entities/task");
+const dropbox_1 = require("./entities/dropbox");
 //  JAVASCRIPT IMPORTS
 const { createServer } = require('bottender/express'); // does not have @types
 const { TelegramBot } = require('bottender');

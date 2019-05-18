@@ -1,12 +1,15 @@
 // TYPESCRIPT IMPORTS
-import { config } from './bottender.config';
+import { config } from '../bottender.config';
 import { ConnectionOptions, createConnection } from 'typeorm';
-import { User } from './src/entities/user';
-import { handler } from './src/handlers';
+import { User } from './entities/user';
+import { TextManager } from './manager/text.manager';
+import { CallbackManager } from './manager/callback.manager';
 import * as _ from 'lodash';
+import { Task } from './entities/task';
+import { Dropbox } from './entities/dropbox';
 
 //  JAVASCRIPT IMPORTS
-const { createServer } = require('bottender/express'); // no tiene @types
+const { createServer } = require('bottender/express'); // does not have @types
 const { TelegramBot } = require('bottender');
 
 require('dotenv').config();
@@ -15,8 +18,9 @@ require('dotenv').config();
 const options: ConnectionOptions = {
     type: 'sqlite',
     database: './db/cloud-bot.db',
-    entities: [User],
+    entities: [User, Task, Dropbox],
     logging: true,
+    synchronize: true,
 };
 
 // bot initialization
@@ -32,7 +36,14 @@ async function main() {
         console.log('Typeorm connected successfully');
     }
 
-    bot.onEvent(handler);
+    bot.onEvent(async (context: any) => {
+        if (context.event.isText) {
+            await TextManager.manageText(context);
+        }
+        if (context.event.isCallbackQuery) {
+            await CallbackManager.manageCallback(context);
+        }
+    });
 
     const server = createServer(bot, { ngrok: true });
 

@@ -7,24 +7,25 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const typeorm_1 = require("typeorm");
-const task_1 = require("./task");
-let User = class User {
+const user_1 = require("../entities/user");
+let Dropbox = class Dropbox {
 };
 __decorate([
     typeorm_1.PrimaryGeneratedColumn('uuid')
-], User.prototype, "id", void 0);
+], Dropbox.prototype, "id", void 0);
 __decorate([
     typeorm_1.Column({ type: 'varchar', length: 250, nullable: false, unique: true })
-], User.prototype, "username", void 0);
+], Dropbox.prototype, "email", void 0);
 __decorate([
     typeorm_1.Column({ type: 'varchar', length: 250, nullable: false })
-], User.prototype, "password", void 0);
+], Dropbox.prototype, "password", void 0);
 __decorate([
-    typeorm_1.OneToMany(type => task_1.Task, task => task.user)
-], User.prototype, "tasks", void 0);
-User = __decorate([
+    typeorm_1.OneToOne(type => user_1.User),
+    typeorm_1.JoinColumn()
+], Dropbox.prototype, "user", void 0);
+Dropbox = __decorate([
     typeorm_1.Entity(),
-    typeorm_1.Unique(['username'])
-], User);
-exports.User = User;
-//# sourceMappingURL=user.js.map
+    typeorm_1.Unique(['email'])
+], Dropbox);
+exports.Dropbox = Dropbox;
+//# sourceMappingURL=dropbox.js.map

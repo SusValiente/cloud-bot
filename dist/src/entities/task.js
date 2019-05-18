@@ -7,24 +7,23 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const typeorm_1 = require("typeorm");
-const task_1 = require("./task");
-let User = class User {
+const user_1 = require("../entities/user");
+let Task = class Task {
 };
 __decorate([
     typeorm_1.PrimaryGeneratedColumn('uuid')
-], User.prototype, "id", void 0);
+], Task.prototype, "id", void 0);
 __decorate([
     typeorm_1.Column({ type: 'varchar', length: 250, nullable: false, unique: true })
-], User.prototype, "username", void 0);
+], Task.prototype, "name", void 0);
 __decorate([
     typeorm_1.Column({ type: 'varchar', length: 250, nullable: false })
-], User.prototype, "password", void 0);
+], Task.prototype, "description", void 0);
 __decorate([
-    typeorm_1.OneToMany(type => task_1.Task, task => task.user)
-], User.prototype, "tasks", void 0);
-User = __decorate([
-    typeorm_1.Entity(),
-    typeorm_1.Unique(['username'])
-], User);
-exports.User = User;
-//# sourceMappingURL=user.js.map
+    typeorm_1.ManyToOne(type => user_1.User, user => user.tasks)
+], Task.prototype, "user", void 0);
+Task = __decorate([
+    typeorm_1.Entity()
+], Task);
+exports.Task = Task;
+//# sourceMappingURL=task.js.map

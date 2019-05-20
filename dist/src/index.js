@@ -16,6 +16,7 @@ const callback_manager_1 = require("./manager/callback.manager");
 const _ = __importStar(require("lodash"));
 const task_1 = require("./entities/task");
 const dropbox_1 = require("./entities/dropbox");
+const states_1 = require("./states");
 //  JAVASCRIPT IMPORTS
 const { createServer } = require('bottender/express'); // does not have @types
 const { TelegramBot } = require('bottender');
@@ -32,6 +33,7 @@ const options = {
 const bot = new TelegramBot({
     accessToken: bottender_config_1.config.telegram.accessToken,
 });
+bot.setInitialState(states_1.initialState);
 async function main() {
     // typeorm connection
     const connection = await typeorm_1.createConnection(options);
@@ -39,11 +41,16 @@ async function main() {
         console.log('Typeorm connected successfully');
     }
     bot.onEvent(async (context) => {
-        if (context.event.isText) {
-            await text_manager_1.TextManager.manageText(context);
+        try {
+            if (context.event.isText) {
+                await text_manager_1.TextManager.manageText(context);
+            }
+            if (context.event.isCallbackQuery) {
+                await callback_manager_1.CallbackManager.manageCallback(context);
+            }
         }
-        if (context.event.isCallbackQuery) {
-            await callback_manager_1.CallbackManager.manageCallback(context);
+        catch (error) {
+            console.log(error);
         }
     });
     const server = createServer(bot, { ngrok: true });
@@ -52,5 +59,5 @@ async function main() {
         console.log(`server is running on ${process.env.PORT} port...`);
     });
 }
-main().catch(console.error);
+main();
 //# sourceMappingURL=index.js.map

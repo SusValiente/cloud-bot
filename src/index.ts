@@ -7,6 +7,7 @@ import { CallbackManager } from './manager/callback.manager';
 import * as _ from 'lodash';
 import { Task } from './entities/task';
 import { Dropbox } from './entities/dropbox';
+import { initialState } from './states';
 
 //  JAVASCRIPT IMPORTS
 const { createServer } = require('bottender/express'); // does not have @types
@@ -28,6 +29,9 @@ const bot = new TelegramBot({
     accessToken: config.telegram.accessToken,
 });
 
+
+bot.setInitialState(initialState);
+
 async function main() {
     // typeorm connection
     const connection = await createConnection(options);
@@ -37,11 +41,15 @@ async function main() {
     }
 
     bot.onEvent(async (context: any) => {
-        if (context.event.isText) {
-            await TextManager.manageText(context);
-        }
-        if (context.event.isCallbackQuery) {
-            await CallbackManager.manageCallback(context);
+        try {
+            if (context.event.isText) {
+                await TextManager.manageText(context);
+            }
+            if (context.event.isCallbackQuery) {
+                await CallbackManager.manageCallback(context);
+            }
+        } catch (error) {
+            console.log(error);
         }
     });
 
@@ -53,4 +61,4 @@ async function main() {
     });
 }
 
-main().catch(console.error);
+main();

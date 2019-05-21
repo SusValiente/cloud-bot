@@ -1,7 +1,7 @@
 import { Messages } from '../messages';
-import { IState } from '../states';
-// import * as _ from 'lodash';
+import { IState, initialState } from '../states';
 import { isNullOrUndefined } from 'util';
+import { Utils } from '../utils';
 /**
  * Class Text manager that manages all text event received
  *
@@ -13,7 +13,7 @@ export class TextManager {
         const state: IState = context.state;
         switch (context.event.text) {
             case '/start':
-                context.resetState();
+                context.setState(initialState);
                 await context.sendMessage(Messages.START, {
                     reply_markup: {
                         inline_keyboard: [
@@ -35,20 +35,47 @@ export class TextManager {
                 break;
 
             default:
-                await this.manageUnknownText(context, state);
+                if (state.currentStatus.registering) {
+                    await this.manageRegisterStatus(context, state);
+                }
+                if (state.currentStatus.logging) {
+                    //     await this.loginUser(context, state);
+                }
+
                 break;
         }
         return Promise.resolve();
     }
 
-    public static async manageUnknownText(context: any, state: IState) {
-        if (state.registering && isNullOrUndefined(state.username)) {
-            state.username = context.event.text;
-            await context.sendMessage(Messages.START_ASK_PASSWORD);
+
+    /**
+     * @method manageRegisterStatus manages messages when the status is registering
+     *
+     * @static
+     * @param {*} context
+     * @param {IState} state
+     * @returns {Promise<void>}
+     * @memberof TextManager
+     */
+    public static async manageRegisterStatus(context: any, state: IState): Promise<void> {
+        let next = true;
+        if (state.currentStatus.insertingUsername && isNullOrUndefined(state.data.username) && next) {
+
+            if (await Utils.validateExistingUsername(context.event.text)) {
+                state.data.username = context.event.text;
+                await context.sendMessage(Messages.START_ASK_PASSWORD);
+                state.currentStatus.insertingPassword = true;
+                state.currentStatus.insertingUsername = false;
+                next = false;
+            } else {
+                await context.sendMessage(Messages.START_NAME_TAKEN);
+            }
+
         }
-        // me quede por aqui, necesito otro flag para comprobar la intro de la password
-        if (state.registering && !isNullOrUndefined(state.username)) {
-            state.password = context.event.text;
+        if (state.currentStatus.insertingPassword && isNullOrUndefined(state.data.password) && next) {
+            state.data.password = context.event.text;
+            state.currentStatus.insertingPassword = false;
+            // comprobar antes los datos del usuario
             await context.sendMessage(Messages.START_ASK_DROPBOX, {
                 reply_markup: {
                     inline_keyboard: [
@@ -67,6 +94,7 @@ export class TextManager {
                     ],
                 },
             });
+            next = false;
         }
         context.setState(state);
         return Promise.resolve();

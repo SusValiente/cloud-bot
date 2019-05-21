@@ -29,10 +29,9 @@ const bot = new TelegramBot({
     accessToken: config.telegram.accessToken,
 });
 
-
-bot.setInitialState(initialState);
-
 async function main() {
+
+    bot.setInitialState(initialState);
     // typeorm connection
     const connection = await createConnection(options);
 
@@ -42,6 +41,7 @@ async function main() {
 
     bot.onEvent(async (context: any) => {
         try {
+            console.log(context.state);
             if (context.event.isText) {
                 await TextManager.manageText(context);
             }

@@ -12,11 +12,13 @@ export class CallbackManager {
         switch (context.event.payload) {
             case 'new_user':
                 await context.sendMessage(Messages.START_UNKNOWN_USER);
-                state.registering = true;
+                state.currentStatus.insertingUsername = true;
+                state.currentStatus.registering = true;
                 break;
             case 'login_user':
                 await context.sendMessage(Messages.START_KNOWN_USER);
-                state.logging = true;
+                state.currentStatus.insertingUsername = true;
+                state.currentStatus.logging = true;
                 break;
 
             default:

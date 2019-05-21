@@ -1,6 +1,8 @@
 import { getConnection } from 'typeorm';
 import { User } from './entities/user';
+import { Dropbox } from './entities/dropbox';
 import { isNullOrUndefined } from 'util';
+import { IData } from './states';
 
 export class Utils {
 
@@ -20,8 +22,50 @@ export class Utils {
         return Promise.resolve(false);
     }
 
-    public static async registerUser(): Promise<boolean> {
-        return Promise.resolve(true);
+    /**
+     * @method registerUser registers user with dropbox data
+     *
+     * @static
+     * @param {*} context
+     * @param {string} givenUsername
+     * @param {string} givenPassword
+     * @param {string} [givenDropboxEmail]
+     * @param {string} [givenDropboxPassword]
+     * @returns {Promise<void>}
+     * @memberof Utils
+     */
+    public static async registerUser(
+        context: any,
+        givenUsername: string,
+        givenPassword: string,
+        givenDropboxEmail?: string,
+        givenDropboxPassword?: string
+    ): Promise<void> {
+        const userRepository = await getConnection().getRepository(User);
+        const dropboxRepository = await getConnection().getRepository(Dropbox);
+        const newUser = await userRepository.save({ username: givenUsername, password: givenPassword });
+        let userData: IData = {
+            userId: newUser.id,
+            username: newUser.username,
+            password: newUser.password
+        };
+        if (!isNullOrUndefined(givenDropboxEmail) && !isNullOrUndefined(givenDropboxPassword)) {
+            const dropboxAccount = await dropboxRepository.save(
+                {
+                    email: givenDropboxEmail,
+                    password: givenDropboxPassword,
+                    user: newUser
+                });
+            userData = {
+                userId: newUser.id,
+                username: newUser.username,
+                password: newUser.password,
+                dropboxEmail: dropboxAccount.email,
+                dropboxPassword: dropboxAccount.password
+            };
+        }
+        context.setState({ data: userData });
+        return Promise.resolve();
     }
 
 

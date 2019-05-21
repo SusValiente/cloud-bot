@@ -34,6 +34,34 @@ export class TextManager {
                 });
                 break;
 
+            case '/settings':
+
+                await context.sendMessage('Ajustes', {
+                    reply_markup: {
+                        inline_keyboard: [
+                            [
+                                {
+                                    text: 'Ajustes de Dropbox',
+                                    callback_data: 'dropbox_settings',
+                                },
+                            ],
+                            [
+                                {
+                                    text: 'Cambiar nombre de usuario',
+                                    callback_data: 'change_username',
+                                },
+                            ],
+                            [
+                                {
+                                    text: 'Cambiar contraseña',
+                                    callback_data: 'change_password',
+                                },
+                            ]
+                        ],
+                    },
+                });
+                break;
+
             default:
                 if (state.currentStatus.registering) {
                     await this.manageRegisterStatus(context, state);
@@ -75,7 +103,6 @@ export class TextManager {
         if (state.currentStatus.insertingPassword && isNullOrUndefined(state.data.password) && next) {
             state.data.password = context.event.text;
             state.currentStatus.insertingPassword = false;
-            // comprobar antes los datos del usuario
             await context.sendMessage(Messages.START_ASK_DROPBOX, {
                 reply_markup: {
                     inline_keyboard: [
@@ -94,6 +121,29 @@ export class TextManager {
                     ],
                 },
             });
+            next = false;
+        }
+        if (state.currentStatus.insertingDropboxEmail && isNullOrUndefined(state.data.dropboxEmail) && next) {
+            state.data.dropboxEmail = context.event.text;
+            state.currentStatus.insertingDropboxEmail = false;
+            state.currentStatus.insertingDropboxPassword = true;
+            await context.sendMessage(Messages.START_ASK_DROPBOX_PASSWORD);
+            next = false;
+        }
+
+        if (state.currentStatus.insertingDropboxPassword && isNullOrUndefined(state.data.dropboxPassword) && next) {
+            state.data.dropboxPassword = context.event.text;
+            state.currentStatus.insertingDropboxPassword = false;
+
+            await Utils.registerUser(
+                context,
+                state.data.username,
+                state.data.password,
+                state.data.dropboxEmail,
+                state.data.dropboxPassword
+            );
+
+            await context.sendMessage(Messages.START_FINISHED);
             next = false;
         }
         context.setState(state);

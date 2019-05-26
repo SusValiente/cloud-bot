@@ -2,12 +2,17 @@
   "name": "cloud_bot",
   "version": "0.1.0",
   "private": true,
+  "main": "dist/index.js",
   "scripts": {
-    "dev": "nodemon --inspect=5861 index.js",
-    "start": "node index.js",
-    "prettier:write": "prettier --write ./src/**/*.js index.js"
+    "prebuild": "tslint -c tslint.json -p tsconfig.json --fix",
+    "build": "tsc",
+    "prestart": "npm run build",
+    "start": "node .",
+    "watch": "npm run build && (tsc -p tsconfig.back.json -watch |  nodemon  --inspect=5861 ./dist/index.js)",
+    "prettier:write": "prettier --write ./src/**/*.ts index.ts"
   },
   "dependencies": {
+    "@types/lodash": "^4.14.129",
     "@types/node": "^11.11.8",
     "bottender": "0.15.17",
     "dotenv": "^6.2.0",
@@ -18,5 +23,9 @@
     "reflect-metadata": "^0.1.13",
     "sqlite3": "^4.0.6",
     "typeorm": "^0.2.16"
+  },
+  "devDependencies": {
+    "tslint": "^5.16.0",
+    "typescript": "^3.4.5"
   }
 }

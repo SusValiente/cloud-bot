@@ -1,6 +1,7 @@
-import { Entity, Unique, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, Unique, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, JoinColumn } from 'typeorm';
 import { IUser } from '../models/user';
 import { Task } from './task';
+import { Dropbox } from './dropbox';
 
 @Entity()
 @Unique(['username'])
@@ -16,4 +17,8 @@ export class User implements IUser {
 
     @OneToMany(type => Task, task => task.user)
     tasks: Task[];
+
+    @OneToOne(type => Dropbox)
+    @JoinColumn()
+    dropbox: Dropbox;
 }

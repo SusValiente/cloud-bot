@@ -9,6 +9,7 @@
         "outDir": "dist",
         "baseUrl": ".",
         "skipLibCheck": true,
+        "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "allowJs": true,
         "paths": {

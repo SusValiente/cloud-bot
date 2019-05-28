@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const typeorm_1 = require("typeorm");
-const user_1 = require("./entities/user");
-const dropbox_1 = require("./entities/dropbox");
+const user_entity_1 = require("./entities/user.entity");
+const dropbox_entity_1 = require("./entities/dropbox.entity");
 class Utils {
     /**
      * @method existsName returns true if the username exists in the database
@@ -13,7 +13,7 @@ class Utils {
      * @memberof Utils
      */
     static async existsName(givenName) {
-        const userRepository = await typeorm_1.getConnection().getRepository(user_1.User);
+        const userRepository = await typeorm_1.getConnection().getRepository(user_entity_1.User);
         const userWithName = await userRepository.findOne({ where: { username: givenName } });
         if (userWithName != null) {
             return Promise.resolve(true);
@@ -33,18 +33,18 @@ class Utils {
      * @memberof Utils
      */
     static async registerUser(context, givenUsername, givenPassword, givenDropboxEmail, givenDropboxPassword) {
-        const userRepository = await typeorm_1.getConnection().getRepository(user_1.User);
-        const dropboxRepository = await typeorm_1.getConnection().getRepository(dropbox_1.Dropbox);
+        const userRepository = await typeorm_1.getConnection().getRepository(user_entity_1.User);
+        const dropboxRepository = await typeorm_1.getConnection().getRepository(dropbox_entity_1.Dropbox);
         const newUser = await userRepository.save({ username: givenUsername, password: givenPassword });
         let userData = {
             userId: newUser.id,
             username: newUser.username,
-            password: newUser.password
+            password: newUser.password,
         };
         if (givenDropboxEmail != null && givenDropboxPassword != null) {
             const dropboxAccount = await dropboxRepository.save({
                 email: givenDropboxEmail,
-                password: givenDropboxPassword
+                password: givenDropboxPassword,
             });
             newUser.dropbox = dropboxAccount;
             await userRepository.save(newUser);
@@ -53,7 +53,7 @@ class Utils {
                 username: newUser.username,
                 password: newUser.password,
                 dropboxEmail: dropboxAccount.email,
-                dropboxPassword: dropboxAccount.password
+                dropboxPassword: dropboxAccount.password,
             };
         }
         context.setState({ data: userData });
@@ -68,12 +68,14 @@ class Utils {
      * @memberof Utils
      */
     static async loginUser(givenUsername, givenPassword) {
-        const user = await typeorm_1.getConnection().getRepository(user_1.User).findOne({
+        const user = await typeorm_1.getConnection()
+            .getRepository(user_entity_1.User)
+            .findOne({
             where: {
                 username: givenUsername,
-                password: givenPassword
+                password: givenPassword,
             },
-            relations: ['dropbox']
+            relations: ['dropbox'],
         });
         return Promise.resolve(user);
     }

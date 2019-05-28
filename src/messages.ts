@@ -11,11 +11,12 @@ export enum Messages {
     START_ASK_DROPBOX_PASSWORD = 'Dime la contraseña de tu cuenta, (no se la diré a nadie)',
     START_FINISHED = 'Todo listo entonces ! Utiliza el comando /help si necesitas mas información',
     START_UNKNOWN_NAME = 'No conozco a ningun usuario con ese nombre, prueba de nuevo',
-    START_WRONG_PASSWORD = 'Contraseña incorrecta, prueba de nuevo'
+    START_WRONG_PASSWORD = 'Contraseña incorrecta, prueba de nuevo',
+    DONT_KNOW_YOU = 'Todavía no se quien eres, utiliza /start para que nos podamos conocer',
+    TASK_LIST_NAME = '¿Como se va a llamar esa lista de tareas?'
 }
 
-export const HELP =
-    `
+export const HELP = `
     Lista de comandos disponibles:
      /start Cerrar sesión y empezar de nuevo
      /help  Mostrar ayuda e informacion disponible

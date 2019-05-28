@@ -10,12 +10,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // TYPESCRIPT IMPORTS
 const bottender_config_1 = require("../bottender.config");
 const typeorm_1 = require("typeorm");
-const user_1 = require("./entities/user");
+const user_entity_1 = require("./entities/user.entity");
 const text_manager_1 = require("./manager/text.manager");
 const callback_manager_1 = require("./manager/callback.manager");
 const _ = __importStar(require("lodash"));
-const task_1 = require("./entities/task");
-const dropbox_1 = require("./entities/dropbox");
+const task_entity_1 = require("./entities/task.entity");
+const dropbox_entity_1 = require("./entities/dropbox.entity");
 const states_1 = require("./states");
 //  JAVASCRIPT IMPORTS
 const { createServer } = require('bottender/express'); // does not have @types
@@ -25,7 +25,7 @@ require('dotenv').config();
 const options = {
     type: 'sqlite',
     database: './db/cloud-bot.db',
-    entities: [user_1.User, task_1.Task, dropbox_1.Dropbox],
+    entities: [user_entity_1.User, task_entity_1.Task, dropbox_entity_1.Dropbox],
     logging: true,
     synchronize: true,
 };

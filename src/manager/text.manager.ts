@@ -1,6 +1,7 @@
 import { Messages, HELP } from '../messages';
 import { IState, initialState } from '../states';
 import { Utils } from '../utils';
+import * as _ from 'lodash';
 /**
  * Class Text manager that manages all text event received
  *
@@ -40,35 +41,68 @@ export class TextManager {
                     break;
 
                 case '/settings':
+                    if (_.isNull(state.data.userId) || _.isUndefined(state.data.userId)) {
+                        await context.sendMessage(Messages.DONT_KNOW_YOU);
+                    } else {
+                        await context.sendMessage('Ajustes', {
+                            reply_markup: {
+                                inline_keyboard: [
+                                    [
+                                        {
+                                            text: 'Ajustes de Dropbox',
+                                            callback_data: 'dropbox_settings',
+                                        },
+                                    ],
+                                    [
+                                        {
+                                            text: 'Cambiar nombre de usuario',
+                                            callback_data: 'change_username',
+                                        },
+                                    ],
+                                    [
+                                        {
+                                            text: 'Cambiar contraseña',
+                                            callback_data: 'change_password',
+                                        },
+                                    ],
+                                    [
+                                        {
+                                            text: 'Cerrar sesión',
+                                            callback_data: 'logout',
+                                        },
+                                    ]
+                                ],
+                            },
+                        });
+                    }
+                    break;
 
-                    await context.sendMessage('Ajustes', {
-                        reply_markup: {
-                            inline_keyboard: [
-                                [
-                                    {
-                                        text: 'Ajustes de Dropbox',
-                                        callback_data: 'dropbox_settings',
-                                    },
+                case '/task':
+                    if (_.isNull(state.data.userId) || _.isUndefined(state.data.userId)) {
+                        await context.sendMessage(Messages.DONT_KNOW_YOU);
+                    } else {
+                        await context.sendMessage('¿Que quieres hacer?', {
+                            reply_markup: {
+                                inline_keyboard: [
+                                    [
+                                        {
+                                            text: 'Ver lista de tareas',
+                                            callback_data: 'task_list',
+                                        },
+                                    ],
+                                    [
+                                        {
+                                            text: 'Crear lista de tareas',
+                                            callback_data: 'create_task_list',
+                                        },
+                                    ]
                                 ],
-                                [
-                                    {
-                                        text: 'Cambiar nombre de usuario',
-                                        callback_data: 'change_username',
-                                    },
-                                ],
-                                [
-                                    {
-                                        text: 'Cambiar contraseña',
-                                        callback_data: 'change_password',
-                                    },
-                                ]
-                            ],
-                        },
-                    });
+                            },
+                        });
+                    }
                     break;
 
                 case '/me':
-
                     if (state.data.username && state.data.password) {
                         // TODO: show only two last characters of password
                         context.sendMessage(
@@ -76,10 +110,12 @@ export class TextManager {
                             Tus datos:
                             Nombre de usuario: ${state.data.username}
                             Contraseña: ${state.data.password}
-                            Cuenta de dropbox: ${(state.data.dropboxEmail != null) ? state.data.dropboxEmail : 'Sin definir'}
+                            Cuenta de dropbox: ${state.data.dropboxEmail != null ? state.data.dropboxEmail : 'Sin definir'}
 
                             `
                         );
+                    } else {
+                        await context.sendMessage(Messages.DONT_KNOW_YOU);
                     }
 
                     break;
@@ -92,6 +128,10 @@ export class TextManager {
                         await this.manageLoginStatus(context, state);
                     }
 
+                    if (state.currentStatus.creatingTaskList) {
+                        await this.manageCreateTaskListStatus(context, state);
+                    }
+
                     break;
             }
             context.setState(state);
@@ -100,7 +140,6 @@ export class TextManager {
             await context.sendMessage(error.message);
         }
     }
-
 
     /**
      * @method manageRegisterStatus manages messages when the status is registering
@@ -114,8 +153,7 @@ export class TextManager {
     public static async manageRegisterStatus(context: any, state: IState): Promise<void> {
         let next = true;
         if (state.currentStatus.insertingUsername && state.data.username === null && next) {
-
-            if (!await Utils.existsName(context.event.text)) {
+            if (!(await Utils.existsName(context.event.text))) {
                 state.data.username = context.event.text;
                 await context.sendMessage(Messages.START_ASK_PASSWORD);
                 state.currentStatus.insertingPassword = true;
@@ -124,7 +162,6 @@ export class TextManager {
             } else {
                 await context.sendMessage(Messages.START_NAME_TAKEN);
             }
-
         }
         if (state.currentStatus.insertingPassword && state.data.password === null && next) {
             state.data.password = context.event.text;
@@ -166,14 +203,12 @@ export class TextManager {
                 state.data.username,
                 state.data.password,
                 state.data.dropboxEmail,
-                state.data.dropboxPassword
-            );
+                state.data.dropboxPassword);
 
             await context.sendMessage(Messages.START_FINISHED);
             next = false;
         }
         return Promise.resolve();
-
     }
 
     /**
@@ -188,7 +223,6 @@ export class TextManager {
     public static async manageLoginStatus(context: any, state: IState): Promise<void> {
         let next = true;
         if (state.currentStatus.insertingUsername && state.data.username === null && next) {
-
             if (await Utils.existsName(context.event.text)) {
                 state.data.username = context.event.text;
                 await context.sendMessage(Messages.START_LOGIN_PASSWORD);
@@ -204,6 +238,8 @@ export class TextManager {
 
             const userLogged = await Utils.loginUser(state.data.username, state.data.password);
             if (userLogged != null) {
+                state.data.userId = userLogged.id;
+                state.data.username = userLogged.username;
                 state.data.password = userLogged.password;
                 state.data.dropboxEmail = userLogged.dropbox.email;
                 state.data.dropboxPassword = userLogged.dropbox.password;
@@ -215,8 +251,13 @@ export class TextManager {
             } else {
                 await context.sendMessage(Messages.START_WRONG_PASSWORD);
             }
-
         }
         return Promise.resolve();
     }
+
+
+    public static async manageCreateTaskListStatus(context: any, state: IState): Promise<void> {
+        return Promise.resolve();
+    }
+
 }

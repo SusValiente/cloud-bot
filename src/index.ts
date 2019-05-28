@@ -1,12 +1,12 @@
 // TYPESCRIPT IMPORTS
 import { config } from '../bottender.config';
 import { ConnectionOptions, createConnection } from 'typeorm';
-import { User } from './entities/user';
+import { User } from './entities/user.entity';
 import { TextManager } from './manager/text.manager';
 import { CallbackManager } from './manager/callback.manager';
 import * as _ from 'lodash';
-import { Task } from './entities/task';
-import { Dropbox } from './entities/dropbox';
+import { Task } from './entities/task.entity';
+import { Dropbox } from './entities/dropbox.entity';
 import { initialState } from './states';
 
 //  JAVASCRIPT IMPORTS
@@ -30,7 +30,6 @@ const bot = new TelegramBot({
 });
 
 async function main() {
-
     bot.setInitialState(initialState);
     // typeorm connection
     const connection = await createConnection(options);

@@ -1,13 +1,11 @@
 import { getConnection } from 'typeorm';
-import { User } from './entities/user';
+import { User } from './entities/user.entity';
 import { IData } from './states';
-import { IUser } from './models/user';
-import { IDropbox } from './models/dropbox';
-import { Dropbox } from './entities/dropbox';
-
+import { IUser } from './models/user.model';
+import { IDropbox } from './models/dropbox.model';
+import { Dropbox } from './entities/dropbox.entity';
 
 export class Utils {
-
     /**
      * @method existsName returns true if the username exists in the database
      *
@@ -51,14 +49,13 @@ export class Utils {
         let userData: IData = {
             userId: newUser.id,
             username: newUser.username,
-            password: newUser.password
+            password: newUser.password,
         };
         if (givenDropboxEmail != null && givenDropboxPassword != null) {
-            const dropboxAccount: IDropbox = await dropboxRepository.save(
-                {
-                    email: givenDropboxEmail,
-                    password: givenDropboxPassword
-                });
+            const dropboxAccount: IDropbox = await dropboxRepository.save({
+                email: givenDropboxEmail,
+                password: givenDropboxPassword,
+            });
             newUser.dropbox = dropboxAccount;
             await userRepository.save(newUser);
             userData = {
@@ -66,7 +63,7 @@ export class Utils {
                 username: newUser.username,
                 password: newUser.password,
                 dropboxEmail: dropboxAccount.email,
-                dropboxPassword: dropboxAccount.password
+                dropboxPassword: dropboxAccount.password,
             };
         }
         context.setState({ data: userData });
@@ -81,18 +78,16 @@ export class Utils {
      * @returns {Promise<IUser>}
      * @memberof Utils
      */
-    public static async loginUser(
-        givenUsername: string,
-        givenPassword: string
-    ): Promise<IUser> {
-
-        const user = await getConnection().getRepository(User).findOne({
-            where: {
-                username: givenUsername,
-                password: givenPassword
-            },
-            relations: ['dropbox']
-        });
+    public static async loginUser(givenUsername: string, givenPassword: string): Promise<IUser> {
+        const user = await getConnection()
+            .getRepository(User)
+            .findOne({
+                where: {
+                    username: givenUsername,
+                    password: givenPassword,
+                },
+                relations: ['dropbox'],
+            });
 
         return Promise.resolve(user);
     }

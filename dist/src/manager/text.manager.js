@@ -1,8 +1,16 @@
 "use strict";
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const messages_1 = require("../messages");
 const states_1 = require("../states");
 const utils_1 = require("../utils");
+const _ = __importStar(require("lodash"));
 /**
  * Class Text manager that manages all text event received
  *
@@ -40,25 +48,50 @@ class TextManager {
                     context.sendMessage(messages_1.HELP);
                     break;
                 case '/settings':
-                    await context.sendMessage('Ajustes', {
+                    if (_.isNull(state.data.userId) || _.isUndefined(state.data.userId)) {
+                        await context.sendMessage(messages_1.Messages.DONT_KNOW_YOU);
+                    }
+                    else {
+                        await context.sendMessage('Ajustes', {
+                            reply_markup: {
+                                inline_keyboard: [
+                                    [
+                                        {
+                                            text: 'Ajustes de Dropbox',
+                                            callback_data: 'dropbox_settings',
+                                        },
+                                    ],
+                                    [
+                                        {
+                                            text: 'Cambiar nombre de usuario',
+                                            callback_data: 'change_username',
+                                        },
+                                    ],
+                                    [
+                                        {
+                                            text: 'Cambiar contraseña',
+                                            callback_data: 'change_password',
+                                        },
+                                    ],
+                                    [
+                                        {
+                                            text: 'Cerrar sesión',
+                                            callback_data: 'logout',
+                                        },
+                                    ]
+                                ],
+                            },
+                        });
+                    }
+                    break;
+                case '/task':
+                    await context.sendMessage('¿Que quieres hacer?', {
                         reply_markup: {
                             inline_keyboard: [
                                 [
                                     {
-                                        text: 'Ajustes de Dropbox',
-                                        callback_data: 'dropbox_settings',
-                                    },
-                                ],
-                                [
-                                    {
-                                        text: 'Cambiar nombre de usuario',
-                                        callback_data: 'change_username',
-                                    },
-                                ],
-                                [
-                                    {
-                                        text: 'Cambiar contraseña',
-                                        callback_data: 'change_password',
+                                        text: 'Ver lista de tareas',
+                                        callback_data: 'task_list',
                                     },
                                 ]
                             ],
@@ -67,13 +100,17 @@ class TextManager {
                     break;
                 case '/me':
                     if (state.data.username && state.data.password) {
+                        // TODO: show only two last characters of password
                         context.sendMessage(`
                             Tus datos:
                             Nombre de usuario: ${state.data.username}
                             Contraseña: ${state.data.password}
-                            Cuenta de dropbox: ${(state.data.dropboxEmail != null) ? state.data.dropboxEmail : 'Sin definir'}
+                            Cuenta de dropbox: ${state.data.dropboxEmail != null ? state.data.dropboxEmail : 'Sin definir'}
 
                             `);
+                    }
+                    else {
+                        await context.sendMessage(messages_1.Messages.DONT_KNOW_YOU);
                     }
                     break;
                 default:
@@ -104,7 +141,7 @@ class TextManager {
     static async manageRegisterStatus(context, state) {
         let next = true;
         if (state.currentStatus.insertingUsername && state.data.username === null && next) {
-            if (!await utils_1.Utils.existsName(context.event.text)) {
+            if (!(await utils_1.Utils.existsName(context.event.text))) {
                 state.data.username = context.event.text;
                 await context.sendMessage(messages_1.Messages.START_ASK_PASSWORD);
                 state.currentStatus.insertingPassword = true;
@@ -181,6 +218,8 @@ class TextManager {
             state.data.password = context.event.text;
             const userLogged = await utils_1.Utils.loginUser(state.data.username, state.data.password);
             if (userLogged != null) {
+                state.data.userId = userLogged.id;
+                state.data.username = userLogged.username;
                 state.data.password = userLogged.password;
                 state.data.dropboxEmail = userLogged.dropbox.email;
                 state.data.dropboxPassword = userLogged.dropbox.password;

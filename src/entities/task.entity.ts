@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, ManyToOne } from 'typeorm';
-import { ITask } from '../models/task';
-import { User } from '../entities/user';
+import { ITask } from '../models/task.model';
+import { TaskList } from './taskList.entity';
+
 
 @Entity()
 export class Task implements ITask {
@@ -13,6 +14,6 @@ export class Task implements ITask {
     @Column({ type: 'varchar', length: 250, nullable: false })
     description: string;
 
-    @ManyToOne(type => User, user => user.tasks)
-    user: User;
+    @ManyToOne(type => TaskList, list => list.tasks)
+    taskList: TaskList;
 }

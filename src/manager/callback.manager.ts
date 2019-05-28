@@ -33,6 +33,10 @@ export class CallbackManager {
                     await context.sendMessage(Messages.START_FINISHED);
                     break;
 
+                case 'create_task_list':
+                    state.currentStatus.creatingTaskList = true;
+                    await context.sendMessage(Messages.TASK_LIST_NAME);
+                    break;
                 default:
                     break;
             }

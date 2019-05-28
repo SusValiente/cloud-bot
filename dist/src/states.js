@@ -6,7 +6,7 @@ exports.initialState = {
         username: null,
         password: null,
         dropboxEmail: null,
-        dropboxPassword: null
+        dropboxPassword: null,
     },
     currentStatus: {
         dropboxActive: null,
@@ -15,7 +15,7 @@ exports.initialState = {
         insertingDropboxEmail: false,
         insertingDropboxPassword: false,
         registering: false,
-        logging: false
-    }
+        logging: false,
+    },
 };
 //# sourceMappingURL=states.js.map

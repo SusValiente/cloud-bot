@@ -15,6 +15,7 @@ var Messages;
     Messages["START_FINISHED"] = "Todo listo entonces ! Utiliza el comando /help si necesitas mas informaci\u00F3n";
     Messages["START_UNKNOWN_NAME"] = "No conozco a ningun usuario con ese nombre, prueba de nuevo";
     Messages["START_WRONG_PASSWORD"] = "Contrase\u00F1a incorrecta, prueba de nuevo";
+    Messages["DONT_KNOW_YOU"] = "Todav\u00EDa no se quien eres, utiliza /start para que nos podamos conocer";
 })(Messages = exports.Messages || (exports.Messages = {}));
 exports.HELP = `
     Lista de comandos disponibles:

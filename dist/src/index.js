@@ -17,6 +17,7 @@ const _ = __importStar(require("lodash"));
 const task_entity_1 = require("./entities/task.entity");
 const dropbox_entity_1 = require("./entities/dropbox.entity");
 const states_1 = require("./states");
+const taskList_entity_1 = require("./entities/taskList.entity");
 //  JAVASCRIPT IMPORTS
 const { createServer } = require('bottender/express'); // does not have @types
 const { TelegramBot } = require('bottender');
@@ -25,7 +26,7 @@ require('dotenv').config();
 const options = {
     type: 'sqlite',
     database: './db/cloud-bot.db',
-    entities: [user_entity_1.User, task_entity_1.Task, dropbox_entity_1.Dropbox],
+    entities: [user_entity_1.User, task_entity_1.Task, taskList_entity_1.TaskList, dropbox_entity_1.Dropbox],
     logging: true,
     synchronize: true,
 };

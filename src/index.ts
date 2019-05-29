@@ -8,6 +8,7 @@ import * as _ from 'lodash';
 import { Task } from './entities/task.entity';
 import { Dropbox } from './entities/dropbox.entity';
 import { initialState } from './states';
+import { TaskList } from './entities/taskList.entity';
 
 //  JAVASCRIPT IMPORTS
 const { createServer } = require('bottender/express'); // does not have @types
@@ -19,7 +20,7 @@ require('dotenv').config();
 const options: ConnectionOptions = {
     type: 'sqlite',
     database: './db/cloud-bot.db',
-    entities: [User, Task, Dropbox],
+    entities: [User, Task, TaskList, Dropbox],
     logging: true,
     synchronize: true,
 };

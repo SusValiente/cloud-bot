@@ -16,6 +16,10 @@ exports.initialState = {
         insertingDropboxPassword: false,
         registering: false,
         logging: false,
+        creatingTaskList: false,
+    },
+    auxData: {
+        taskListName: null,
     },
 };
 //# sourceMappingURL=states.js.map

@@ -10,34 +10,24 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const typeorm_1 = require("typeorm");
-const taskList_entity_1 = require("./taskList.entity");
-const dropbox_entity_1 = require("./dropbox.entity");
-let User = class User {
+const user_entity_1 = require("./user.entity");
+const task_entity_1 = require("./task.entity");
+let TaskList = class TaskList {
 };
-__decorate([
-    typeorm_1.PrimaryGeneratedColumn('uuid'),
-    __metadata("design:type", String)
-], User.prototype, "id", void 0);
 __decorate([
     typeorm_1.Column({ type: 'varchar', length: 250, nullable: false, unique: true }),
     __metadata("design:type", String)
-], User.prototype, "username", void 0);
+], TaskList.prototype, "name", void 0);
 __decorate([
-    typeorm_1.Column({ type: 'varchar', length: 250, nullable: false }),
-    __metadata("design:type", String)
-], User.prototype, "password", void 0);
+    typeorm_1.ManyToOne(type => user_entity_1.User, user => user.taskLists),
+    __metadata("design:type", user_entity_1.User)
+], TaskList.prototype, "user", void 0);
 __decorate([
-    typeorm_1.OneToOne(type => dropbox_entity_1.Dropbox),
-    typeorm_1.JoinColumn(),
-    __metadata("design:type", dropbox_entity_1.Dropbox)
-], User.prototype, "dropbox", void 0);
-__decorate([
-    typeorm_1.OneToMany(type => taskList_entity_1.TaskList, list => list.user),
+    typeorm_1.OneToMany(type => task_entity_1.Task, task => task.taskList),
     __metadata("design:type", Array)
-], User.prototype, "taskLists", void 0);
-User = __decorate([
-    typeorm_1.Entity(),
-    typeorm_1.Unique(['username'])
-], User);
-exports.User = User;
-//# sourceMappingURL=user.entity.js.map
+], TaskList.prototype, "tasks", void 0);
+TaskList = __decorate([
+    typeorm_1.Entity()
+], TaskList);
+exports.TaskList = TaskList;
+//# sourceMappingURL=taskList.entity.js.map

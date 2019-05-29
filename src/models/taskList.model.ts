@@ -8,8 +8,6 @@ import { IUser } from './user.model';
  * @class ITaskList
  */
 export class ITaskList {
-
     user: IUser;
     tasks: ITask[];
-
 }

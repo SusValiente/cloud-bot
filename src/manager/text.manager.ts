@@ -2,6 +2,8 @@ import { Messages, HELP } from '../messages';
 import { IState, initialState } from '../states';
 import { Utils } from '../utils';
 import * as _ from 'lodash';
+import { getConnection } from 'typeorm';
+import { TaskList } from '../entities/taskList.entity';
 /**
  * Class Text manager that manages all text event received
  *
@@ -70,7 +72,7 @@ export class TextManager {
                                             text: 'Cerrar sesión',
                                             callback_data: 'logout',
                                         },
-                                    ]
+                                    ],
                                 ],
                             },
                         });
@@ -95,7 +97,7 @@ export class TextManager {
                                             text: 'Crear lista de tareas',
                                             callback_data: 'create_task_list',
                                         },
-                                    ]
+                                    ],
                                 ],
                             },
                         });
@@ -152,7 +154,7 @@ export class TextManager {
      */
     public static async manageRegisterStatus(context: any, state: IState): Promise<void> {
         let next = true;
-        if (state.currentStatus.insertingUsername && state.data.username === null && next) {
+        if (state.currentStatus.insertingUsername && _.isNull(state.data.username) && next) {
             if (!(await Utils.existsName(context.event.text))) {
                 state.data.username = context.event.text;
                 await context.sendMessage(Messages.START_ASK_PASSWORD);
@@ -163,7 +165,7 @@ export class TextManager {
                 await context.sendMessage(Messages.START_NAME_TAKEN);
             }
         }
-        if (state.currentStatus.insertingPassword && state.data.password === null && next) {
+        if (state.currentStatus.insertingPassword && _.isNull(state.data.password) && next) {
             state.data.password = context.event.text;
             state.currentStatus.insertingPassword = false;
             await context.sendMessage(Messages.START_ASK_DROPBOX, {
@@ -186,7 +188,7 @@ export class TextManager {
             });
             next = false;
         }
-        if (state.currentStatus.insertingDropboxEmail && state.data.dropboxEmail === null && next) {
+        if (state.currentStatus.insertingDropboxEmail && _.isNull(state.data.dropboxEmail) && next) {
             state.data.dropboxEmail = context.event.text;
             state.currentStatus.insertingDropboxEmail = false;
             state.currentStatus.insertingDropboxPassword = true;
@@ -194,16 +196,11 @@ export class TextManager {
             next = false;
         }
 
-        if (state.currentStatus.insertingDropboxPassword && state.data.dropboxPassword === null && next) {
+        if (state.currentStatus.insertingDropboxPassword && _.isNull(state.data.dropboxPassword) && next) {
             state.data.dropboxPassword = context.event.text;
             state.currentStatus.insertingDropboxPassword = false;
 
-            await Utils.registerUser(
-                context,
-                state.data.username,
-                state.data.password,
-                state.data.dropboxEmail,
-                state.data.dropboxPassword);
+            await Utils.registerUser(context, state.data.username, state.data.password, state.data.dropboxEmail, state.data.dropboxPassword);
 
             await context.sendMessage(Messages.START_FINISHED);
             next = false;
@@ -222,7 +219,7 @@ export class TextManager {
      */
     public static async manageLoginStatus(context: any, state: IState): Promise<void> {
         let next = true;
-        if (state.currentStatus.insertingUsername && state.data.username === null && next) {
+        if (state.currentStatus.insertingUsername && _.isNull(state.data.username) && next) {
             if (await Utils.existsName(context.event.text)) {
                 state.data.username = context.event.text;
                 await context.sendMessage(Messages.START_LOGIN_PASSWORD);
@@ -233,11 +230,11 @@ export class TextManager {
                 await context.sendMessage(Messages.START_UNKNOWN_NAME);
             }
         }
-        if (state.currentStatus.insertingPassword && state.data.password === null && next) {
+        if (state.currentStatus.insertingPassword && _.isNull(state.data.password) && next) {
             state.data.password = context.event.text;
 
             const userLogged = await Utils.loginUser(state.data.username, state.data.password);
-            if (userLogged != null) {
+            if (!_.isNull(userLogged) && !_.isUndefined(userLogged)) {
                 state.data.userId = userLogged.id;
                 state.data.username = userLogged.username;
                 state.data.password = userLogged.password;
@@ -255,9 +252,19 @@ export class TextManager {
         return Promise.resolve();
     }
 
-
     public static async manageCreateTaskListStatus(context: any, state: IState): Promise<void> {
+        if (_.isNull(state.auxData.taskListName)) {
+            const newTaskList = await getConnection()
+                .getRepository(TaskList)
+                .save({ name: context.event.text });
+            if (!_.isNull(newTaskList) && !_.isUndefined(newTaskList)) {
+                await context.sendMessage('Lista de tareas creada correctamente,¿quieres añadirle tareas?');
+                await context.sendMessage('Falta por programar este camino');
+                state.currentStatus.creatingTaskList = false;
+            } else {
+                await context.sendMessage('Algo ha fallado, intentalo de nuevo porfavor');
+            }
+        }
         return Promise.resolve();
     }
-
 }

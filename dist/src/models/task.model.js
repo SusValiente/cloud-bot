@@ -1,6 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-// Task class
+/**
+ * Task class
+ *
+ * @export
+ * @class ITask
+ */
 class ITask {
 }
 exports.ITask = ITask;

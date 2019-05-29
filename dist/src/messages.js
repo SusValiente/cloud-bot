@@ -16,6 +16,7 @@ var Messages;
     Messages["START_UNKNOWN_NAME"] = "No conozco a ningun usuario con ese nombre, prueba de nuevo";
     Messages["START_WRONG_PASSWORD"] = "Contrase\u00F1a incorrecta, prueba de nuevo";
     Messages["DONT_KNOW_YOU"] = "Todav\u00EDa no se quien eres, utiliza /start para que nos podamos conocer";
+    Messages["TASK_LIST_NAME"] = "\u00BFComo se va a llamar esa lista de tareas?";
 })(Messages = exports.Messages || (exports.Messages = {}));
 exports.HELP = `
     Lista de comandos disponibles:

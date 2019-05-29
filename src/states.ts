@@ -1,6 +1,11 @@
 export interface IState {
     data: IData;
     currentStatus: IChatStatus;
+    auxData: IAuxData;
+}
+
+export interface IAuxData {
+    taskListName: string;
 }
 
 export interface IData {
@@ -38,6 +43,9 @@ export const initialState: IState = {
         insertingDropboxPassword: false, // to know if the user is inserting a dropbox password
         registering: false,
         logging: false,
-        creatingTaskList: false
+        creatingTaskList: false,
+    },
+    auxData: {
+        taskListName: null,
     },
 };

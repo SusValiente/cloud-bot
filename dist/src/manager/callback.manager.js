@@ -33,6 +33,10 @@ class CallbackManager {
                     await utils_1.Utils.registerUser(context, state.data.username, state.data.password);
                     await context.sendMessage(messages_1.Messages.START_FINISHED);
                     break;
+                case 'create_task_list':
+                    state.currentStatus.creatingTaskList = true;
+                    await context.sendMessage(messages_1.Messages.TASK_LIST_NAME);
+                    break;
                 default:
                     break;
             }

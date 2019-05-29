@@ -1,6 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-// User class
+/**
+ * User class
+ *
+ * @export
+ * @class IUser
+ */
 class IUser {
 }
 exports.IUser = IUser;

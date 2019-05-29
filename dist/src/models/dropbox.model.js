@@ -1,6 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-// Dropbox class
+/**
+ * Dropbox class
+ *
+ * @export
+ * @class IDropbox
+ */
 class IDropbox {
 }
 exports.IDropbox = IDropbox;

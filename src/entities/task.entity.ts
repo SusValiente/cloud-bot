@@ -2,7 +2,6 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, ManyToOne
 import { ITask } from '../models/task.model';
 import { TaskList } from './taskList.entity';
 
-
 @Entity()
 export class Task implements ITask {
     @PrimaryGeneratedColumn('uuid')

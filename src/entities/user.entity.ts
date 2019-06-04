@@ -1,7 +1,7 @@
 import { Entity, Unique, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, JoinColumn } from 'typeorm';
 import { IUser } from '../models/user.model';
-import { TaskList } from './taskList.entity';
 import { Dropbox } from './dropbox.entity';
+import { TaskList } from './taskList.entity';
 
 @Entity()
 @Unique(['username'])

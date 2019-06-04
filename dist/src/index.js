@@ -10,14 +10,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // TYPESCRIPT IMPORTS
 const bottender_config_1 = require("../bottender.config");
 const typeorm_1 = require("typeorm");
-const user_entity_1 = require("./entities/user.entity");
 const text_manager_1 = require("./manager/text.manager");
 const callback_manager_1 = require("./manager/callback.manager");
 const _ = __importStar(require("lodash"));
-const task_entity_1 = require("./entities/task.entity");
-const dropbox_entity_1 = require("./entities/dropbox.entity");
 const states_1 = require("./states");
-const taskList_entity_1 = require("./entities/taskList.entity");
 //  JAVASCRIPT IMPORTS
 const { createServer } = require('bottender/express'); // does not have @types
 const { TelegramBot } = require('bottender');
@@ -26,7 +22,10 @@ require('dotenv').config();
 const options = {
     type: 'sqlite',
     database: './db/cloud-bot.db',
-    entities: [user_entity_1.User, task_entity_1.Task, taskList_entity_1.TaskList, dropbox_entity_1.Dropbox],
+    entities: [
+        // any entity file under src/modules
+        __dirname + '/*.entity.ts'
+    ],
     logging: true,
     synchronize: true,
 };
@@ -43,7 +42,6 @@ async function main() {
     }
     bot.onEvent(async (context) => {
         try {
-            console.log(context.state);
             if (context.event.isText) {
                 await text_manager_1.TextManager.manageText(context);
             }
@@ -52,7 +50,7 @@ async function main() {
             }
         }
         catch (error) {
-            console.log(error);
+            await context.sendMessage(error);
         }
     });
     const server = createServer(bot, { ngrok: true });

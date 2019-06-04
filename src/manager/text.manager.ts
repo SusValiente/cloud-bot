@@ -3,7 +3,6 @@ import { IState, initialState } from '../states';
 import { Utils } from '../utils';
 import * as _ from 'lodash';
 import { getConnection } from 'typeorm';
-import { TaskList } from '../entities/taskList.entity';
 /**
  * Class Text manager that manages all text event received
  *
@@ -12,135 +11,136 @@ import { TaskList } from '../entities/taskList.entity';
  */
 export class TextManager {
     public static async manageText(context: any): Promise<void> {
-        try {
-            let state: IState = context.state;
-            switch (context.event.text) {
-                case '/start':
-                    context.setState(initialState);
-                    state = initialState;
-                    await context.sendMessage(Messages.START, {
+        let state: IState = context.state;
+        switch (context.event.text) {
+            case '/start':
+                context.setState(initialState);
+                state = initialState;
+                await context.sendMessage(Messages.START, {
+                    reply_markup: {
+                        inline_keyboard: [
+                            [
+                                {
+                                    text: 'Soy un usuario nuevo',
+                                    callback_data: 'new_user',
+                                },
+                            ],
+                            [
+                                {
+                                    text: 'Ya he estado antes',
+                                    callback_data: 'login_user',
+                                },
+                            ],
+                        ],
+                    },
+                });
+                break;
+
+            case '/help':
+                context.sendMessage(HELP);
+                break;
+
+            case '/settings':
+                if (_.isNull(state.data.userId) || _.isUndefined(state.data.userId)) {
+                    await context.sendMessage(Messages.DONT_KNOW_YOU);
+                } else {
+                    await context.sendMessage('Ajustes', {
                         reply_markup: {
                             inline_keyboard: [
                                 [
                                     {
-                                        text: 'Soy un usuario nuevo',
-                                        callback_data: 'new_user',
+                                        text: 'Ajustes de Dropbox',
+                                        callback_data: 'dropbox_settings',
                                     },
                                 ],
                                 [
                                     {
-                                        text: 'Ya he estado antes',
-                                        callback_data: 'login_user',
+                                        text: 'Cambiar nombre de usuario',
+                                        callback_data: 'change_username',
+                                    },
+                                ],
+                                [
+                                    {
+                                        text: 'Cambiar contraseña',
+                                        callback_data: 'change_password',
+                                    },
+                                ],
+                                [
+                                    {
+                                        text: 'Cerrar sesión',
+                                        callback_data: 'logout',
                                     },
                                 ],
                             ],
                         },
                     });
-                    break;
+                }
+                break;
 
-                case '/help':
-                    context.sendMessage(HELP);
-                    break;
-
-                case '/settings':
-                    if (_.isNull(state.data.userId) || _.isUndefined(state.data.userId)) {
-                        await context.sendMessage(Messages.DONT_KNOW_YOU);
-                    } else {
-                        await context.sendMessage('Ajustes', {
-                            reply_markup: {
-                                inline_keyboard: [
-                                    [
-                                        {
-                                            text: 'Ajustes de Dropbox',
-                                            callback_data: 'dropbox_settings',
-                                        },
-                                    ],
-                                    [
-                                        {
-                                            text: 'Cambiar nombre de usuario',
-                                            callback_data: 'change_username',
-                                        },
-                                    ],
-                                    [
-                                        {
-                                            text: 'Cambiar contraseña',
-                                            callback_data: 'change_password',
-                                        },
-                                    ],
-                                    [
-                                        {
-                                            text: 'Cerrar sesión',
-                                            callback_data: 'logout',
-                                        },
-                                    ],
+            case '/task':
+                if (_.isNull(state.data.userId) || _.isUndefined(state.data.userId)) {
+                    await context.sendMessage(Messages.DONT_KNOW_YOU);
+                } else {
+                    await context.sendMessage('¿Que quieres hacer?', {
+                        reply_markup: {
+                            inline_keyboard: [
+                                [
+                                    {
+                                        text: 'Ver lista de tareas',
+                                        callback_data: 'task_list',
+                                    },
                                 ],
-                            },
-                        });
-                    }
-                    break;
-
-                case '/task':
-                    if (_.isNull(state.data.userId) || _.isUndefined(state.data.userId)) {
-                        await context.sendMessage(Messages.DONT_KNOW_YOU);
-                    } else {
-                        await context.sendMessage('¿Que quieres hacer?', {
-                            reply_markup: {
-                                inline_keyboard: [
-                                    [
-                                        {
-                                            text: 'Ver lista de tareas',
-                                            callback_data: 'task_list',
-                                        },
-                                    ],
-                                    [
-                                        {
-                                            text: 'Crear lista de tareas',
-                                            callback_data: 'create_task_list',
-                                        },
-                                    ],
+                                [
+                                    {
+                                        text: 'Crear lista de tareas',
+                                        callback_data: 'create_task_list',
+                                    },
                                 ],
-                            },
-                        });
-                    }
-                    break;
+                            ],
+                        },
+                    });
+                }
+                break;
 
-                case '/me':
-                    if (state.data.username && state.data.password) {
-                        // TODO: show only two last characters of password
-                        context.sendMessage(
-                            `
+            case '/me':
+                if (state.data.username && state.data.password) {
+                    // TODO: show only two last characters of password
+                    context.sendMessage(
+                        `
                             Tus datos:
                             Nombre de usuario: ${state.data.username}
                             Contraseña: ${state.data.password}
                             Cuenta de dropbox: ${state.data.dropboxEmail != null ? state.data.dropboxEmail : 'Sin definir'}
 
                             `
-                        );
-                    } else {
-                        await context.sendMessage(Messages.DONT_KNOW_YOU);
-                    }
+                    );
+                } else {
+                    await context.sendMessage(Messages.DONT_KNOW_YOU);
+                }
 
-                    break;
+                break;
 
-                default:
-                    if (state.currentStatus.registering) {
-                        await this.manageRegisterStatus(context, state);
-                    }
-                    if (state.currentStatus.logging) {
-                        await this.manageLoginStatus(context, state);
-                    }
+            case '/testing':
+                const connection = await getConnection();
+                await context.sendMessage(connection);
+                break;
 
-                    if (state.currentStatus.creatingTaskList) {
-                        await this.manageCreateTaskListStatus(context, state);
-                    }
+            default:
+                if (state.currentStatus.registering) {
+                    await this.manageRegisterStatus(context, state);
+                }
+                if (state.currentStatus.logging) {
+                    await this.manageLoginStatus(context, state);
+                }
 
-                    break;
-            }
-            context.setState(state);
-            return Promise.resolve();
-        } catch (error) {
-            await context.sendMessage(error.message);
+                // if (state.currentStatus.creatingTaskList) {
+                //     await this.manageCreateTaskListStatus(context, state);
+                // }
+
+                break;
         }
+        context.setState(state);
+        return Promise.resolve();
     }
 
     /**
@@ -252,19 +252,19 @@ export class TextManager {
         return Promise.resolve();
     }
 
-    public static async manageCreateTaskListStatus(context: any, state: IState): Promise<void> {
-        if (_.isNull(state.auxData.taskListName)) {
-            const newTaskList = await getConnection()
-                .getRepository(TaskList)
-                .save({ name: context.event.text });
-            if (!_.isNull(newTaskList) && !_.isUndefined(newTaskList)) {
-                await context.sendMessage('Lista de tareas creada correctamente,¿quieres añadirle tareas?');
-                await context.sendMessage('Falta por programar este camino');
-                state.currentStatus.creatingTaskList = false;
-            } else {
-                await context.sendMessage('Algo ha fallado, intentalo de nuevo porfavor');
-            }
-        }
-        return Promise.resolve();
-    }
+    // public static async manageCreateTaskListStatus(context: any, state: IState): Promise<void> {
+    //     if (_.isNull(state.auxData.taskListName)) {
+    //         const newTaskList = await getConnection()
+    //             .getRepository(TaskList)
+    //             .save({ name: context.event.text });
+    //         if (!_.isNull(newTaskList) && !_.isUndefined(newTaskList)) {
+    //             await context.sendMessage('Lista de tareas creada correctamente,¿quieres añadirle tareas?');
+    //             await context.sendMessage('Falta por programar este camino');
+    //             state.currentStatus.creatingTaskList = false;
+    //         } else {
+    //             await context.sendMessage('Algo ha fallado, intentalo de nuevo porfavor');
+    //         }
+    //     }
+    //     return Promise.resolve();
+    // }
 }

@@ -10,8 +10,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const typeorm_1 = require("typeorm");
-const taskList_entity_1 = require("./taskList.entity");
 const dropbox_entity_1 = require("./dropbox.entity");
+const taskList_entity_1 = require("./taskList.entity");
 let User = class User {
 };
 __decorate([

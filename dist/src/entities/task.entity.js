@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const typeorm_1 = require("typeorm");
 const taskList_entity_1 = require("./taskList.entity");
+const taskList_model_1 = require("../models/taskList.model");
 let Task = class Task {
 };
 __decorate([
@@ -27,7 +28,7 @@ __decorate([
 ], Task.prototype, "description", void 0);
 __decorate([
     typeorm_1.ManyToOne(type => taskList_entity_1.TaskList, list => list.tasks),
-    __metadata("design:type", taskList_entity_1.TaskList)
+    __metadata("design:type", taskList_model_1.ITaskList)
 ], Task.prototype, "taskList", void 0);
 Task = __decorate([
     typeorm_1.Entity()

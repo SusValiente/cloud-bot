@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 import { ITask } from '../models/task.model';
 import { TaskList } from './taskList.entity';
+import { ITaskList } from '../models/taskList.model';
 
 @Entity()
 export class Task implements ITask {
@@ -14,5 +15,5 @@ export class Task implements ITask {
     description: string;
 
     @ManyToOne(type => TaskList, list => list.tasks)
-    taskList: TaskList;
+    taskList: ITaskList;
 }

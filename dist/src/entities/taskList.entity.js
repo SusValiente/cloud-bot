@@ -10,17 +10,22 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const typeorm_1 = require("typeorm");
+const user_model_1 = require("../models/user.model");
 const user_entity_1 = require("./user.entity");
 const task_entity_1 = require("./task.entity");
 let TaskList = class TaskList {
 };
+__decorate([
+    typeorm_1.PrimaryGeneratedColumn('uuid'),
+    __metadata("design:type", String)
+], TaskList.prototype, "id", void 0);
 __decorate([
     typeorm_1.Column({ type: 'varchar', length: 250, nullable: false, unique: true }),
     __metadata("design:type", String)
 ], TaskList.prototype, "name", void 0);
 __decorate([
     typeorm_1.ManyToOne(type => user_entity_1.User, user => user.taskLists),
-    __metadata("design:type", user_entity_1.User)
+    __metadata("design:type", user_model_1.IUser)
 ], TaskList.prototype, "user", void 0);
 __decorate([
     typeorm_1.OneToMany(type => task_entity_1.Task, task => task.taskList),

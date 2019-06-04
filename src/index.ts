@@ -20,7 +20,11 @@ require('dotenv').config();
 const options: ConnectionOptions = {
     type: 'sqlite',
     database: './db/cloud-bot.db',
-    entities: [User, Task, TaskList, Dropbox],
+    entities: [
+        // TODO ARREGLAR ESTO
+        // any entity file under src/modules
+        __dirname + '/*.entity.ts',
+    ],
     logging: true,
     synchronize: true,
 };
@@ -41,7 +45,6 @@ async function main() {
 
     bot.onEvent(async (context: any) => {
         try {
-            console.log(context.state);
             if (context.event.isText) {
                 await TextManager.manageText(context);
             }
@@ -49,7 +52,7 @@ async function main() {
                 await CallbackManager.manageCallback(context);
             }
         } catch (error) {
-            console.log(error);
+            await context.sendMessage(error);
         }
     });
 

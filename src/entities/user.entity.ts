@@ -15,7 +15,7 @@ export class User implements IUser {
     @Column({ type: 'varchar', length: 250, nullable: false })
     password: string;
 
-    @OneToOne(type => Dropbox)
+    @OneToOne(type => Dropbox, { cascade: true, onDelete: 'CASCADE' })
     @JoinColumn()
     dropbox: Dropbox;
 

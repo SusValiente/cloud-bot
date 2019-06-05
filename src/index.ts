@@ -1,14 +1,10 @@
 // TYPESCRIPT IMPORTS
 import { config } from '../bottender.config';
 import { ConnectionOptions, createConnection } from 'typeorm';
-import { User } from './entities/user.entity';
 import { TextManager } from './manager/text.manager';
 import { CallbackManager } from './manager/callback.manager';
 import * as _ from 'lodash';
-import { Task } from './entities/task.entity';
-import { Dropbox } from './entities/dropbox.entity';
 import { initialState } from './states';
-import { TaskList } from './entities/taskList.entity';
 
 //  JAVASCRIPT IMPORTS
 const { createServer } = require('bottender/express'); // does not have @types
@@ -20,11 +16,7 @@ require('dotenv').config();
 const options: ConnectionOptions = {
     type: 'sqlite',
     database: './db/cloud-bot.db',
-    entities: [
-        // TODO ARREGLAR ESTO
-        // any entity file under src/modules
-        __dirname + '/*.entity.ts',
-    ],
+    entities: ['./dist/**/*.entity.js'],
     logging: true,
     synchronize: true,
 };

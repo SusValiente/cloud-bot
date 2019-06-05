@@ -13,7 +13,7 @@ export class TaskList implements ITaskList {
     @Column({ type: 'varchar', length: 250, nullable: false, unique: true })
     name: string;
 
-    @ManyToOne(type => User, user => user.taskLists)
+    @ManyToOne(type => User, user => user.taskLists, { cascade: true, onDelete: 'CASCADE' })
     user: IUser;
 
     @OneToMany(type => Task, task => task.taskList)

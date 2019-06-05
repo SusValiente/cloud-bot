@@ -1,8 +1,16 @@
 "use strict";
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const typeorm_1 = require("typeorm");
 const user_entity_1 = require("./entities/user.entity");
 const dropbox_entity_1 = require("./entities/dropbox.entity");
+const _ = __importStar(require("lodash"));
 class Utils {
     /**
      * @method existsName returns true if the username exists in the database
@@ -14,7 +22,7 @@ class Utils {
      */
     static async existsName(givenName) {
         const userRepository = await typeorm_1.getConnection().getRepository(user_entity_1.User);
-        const userWithName = await userRepository.findOne({ where: { username: givenName } });
+        const userWithName = await userRepository.findOne({ where: { username: givenName.toLocaleLowerCase() } });
         if (userWithName != null) {
             return Promise.resolve(true);
         }
@@ -35,7 +43,7 @@ class Utils {
     static async registerUser(context, givenUsername, givenPassword, givenDropboxEmail, givenDropboxPassword) {
         const userRepository = await typeorm_1.getConnection().getRepository(user_entity_1.User);
         const dropboxRepository = await typeorm_1.getConnection().getRepository(dropbox_entity_1.Dropbox);
-        const newUser = await userRepository.save({ username: givenUsername, password: givenPassword });
+        const newUser = await userRepository.save({ username: givenUsername.toLocaleLowerCase(), password: givenPassword });
         let userData = {
             userId: newUser.id,
             username: newUser.username,
@@ -56,7 +64,7 @@ class Utils {
                 dropboxPassword: dropboxAccount.password,
             };
         }
-        context.setState({ data: userData });
+        context.setState({ user: newUser, data: userData });
         return Promise.resolve();
     }
     /**
@@ -78,6 +86,20 @@ class Utils {
             relations: ['dropbox'],
         });
         return Promise.resolve(user);
+    }
+    /**
+     * @method isNullOrUndefined returns true if the object is null or undefined
+     *
+     * @static
+     * @param {*} data
+     * @returns {boolean}
+     * @memberof Utils
+     */
+    static isNullOrUndefined(data) {
+        if (_.isNull(data) || _.isUndefined(data)) {
+            return true;
+        }
+        return false;
     }
 }
 exports.Utils = Utils;

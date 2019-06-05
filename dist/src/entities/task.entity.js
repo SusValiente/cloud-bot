@@ -27,7 +27,7 @@ __decorate([
     __metadata("design:type", String)
 ], Task.prototype, "description", void 0);
 __decorate([
-    typeorm_1.ManyToOne(type => taskList_entity_1.TaskList, list => list.tasks),
+    typeorm_1.ManyToOne(type => taskList_entity_1.TaskList, list => list.tasks, { cascade: true, onDelete: 'CASCADE' }),
     __metadata("design:type", taskList_model_1.ITaskList)
 ], Task.prototype, "taskList", void 0);
 Task = __decorate([

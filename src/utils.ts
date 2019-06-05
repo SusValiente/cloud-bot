@@ -4,6 +4,7 @@ import { IData } from './states';
 import { IUser } from './models/user.model';
 import { IDropbox } from './models/dropbox.model';
 import { Dropbox } from './entities/dropbox.entity';
+import * as _ from 'lodash';
 
 export class Utils {
     /**
@@ -16,7 +17,7 @@ export class Utils {
      */
     public static async existsName(givenName: string): Promise<boolean> {
         const userRepository = await getConnection().getRepository(User);
-        const userWithName = await userRepository.findOne({ where: { username: givenName } });
+        const userWithName = await userRepository.findOne({ where: { username: givenName.toLocaleLowerCase() } });
         if (userWithName != null) {
             return Promise.resolve(true);
         }
@@ -45,7 +46,7 @@ export class Utils {
         const userRepository = await getConnection().getRepository(User);
         const dropboxRepository = await getConnection().getRepository(Dropbox);
 
-        const newUser: IUser = await userRepository.save({ username: givenUsername, password: givenPassword });
+        const newUser: IUser = await userRepository.save({ username: givenUsername.toLocaleLowerCase(), password: givenPassword });
         let userData: IData = {
             userId: newUser.id,
             username: newUser.username,
@@ -66,7 +67,7 @@ export class Utils {
                 dropboxPassword: dropboxAccount.password,
             };
         }
-        context.setState({ data: userData });
+        context.setState({ user: newUser, data: userData });
         return Promise.resolve();
     }
 
@@ -90,5 +91,20 @@ export class Utils {
             });
 
         return Promise.resolve(user);
+    }
+
+    /**
+     * @method isNullOrUndefined returns true if the object is null or undefined
+     *
+     * @static
+     * @param {*} data
+     * @returns {boolean}
+     * @memberof Utils
+     */
+    public static isNullOrUndefined(data: any): boolean {
+        if (_.isNull(data) || _.isUndefined(data)) {
+            return true;
+        }
+        return false;
     }
 }

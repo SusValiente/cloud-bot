@@ -1,7 +1,10 @@
+import { IUser } from './models/user.model';
+
 export interface IState {
     data: IData;
     currentStatus: IChatStatus;
     auxData: IAuxData;
+    user: IUser;
 }
 
 export interface IAuxData {
@@ -28,6 +31,7 @@ export interface IChatStatus {
 }
 
 export const initialState: IState = {
+    user: null,
     data: {
         userId: null,
         username: null,

@@ -14,6 +14,6 @@ export class Task implements ITask {
     @Column({ type: 'varchar', length: 250, nullable: false })
     description: string;
 
-    @ManyToOne(type => TaskList, list => list.tasks)
+    @ManyToOne(type => TaskList, list => list.tasks, { cascade: true, onDelete: 'CASCADE' })
     taskList: ITaskList;
 }

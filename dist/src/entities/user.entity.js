@@ -27,7 +27,7 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "password", void 0);
 __decorate([
-    typeorm_1.OneToOne(type => dropbox_entity_1.Dropbox),
+    typeorm_1.OneToOne(type => dropbox_entity_1.Dropbox, { cascade: true, onDelete: 'CASCADE' }),
     typeorm_1.JoinColumn(),
     __metadata("design:type", dropbox_entity_1.Dropbox)
 ], User.prototype, "dropbox", void 0);

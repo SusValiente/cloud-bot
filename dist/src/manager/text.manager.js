@@ -12,6 +12,7 @@ const states_1 = require("../states");
 const utils_1 = require("../utils");
 const _ = __importStar(require("lodash"));
 const typeorm_1 = require("typeorm");
+const taskList_entity_1 = require("../entities/taskList.entity");
 /**
  * Class Text manager that manages all text event received
  *
@@ -48,7 +49,7 @@ class TextManager {
                 context.sendMessage(messages_1.HELP);
                 break;
             case '/settings':
-                if (_.isNull(state.data.userId) || _.isUndefined(state.data.userId)) {
+                if (utils_1.Utils.isNullOrUndefined(state.data.userId)) {
                     await context.sendMessage(messages_1.Messages.DONT_KNOW_YOU);
                 }
                 else {
@@ -85,7 +86,7 @@ class TextManager {
                 }
                 break;
             case '/task':
-                if (_.isNull(state.data.userId) || _.isUndefined(state.data.userId)) {
+                if (utils_1.Utils.isNullOrUndefined(state.user)) {
                     await context.sendMessage(messages_1.Messages.DONT_KNOW_YOU);
                 }
                 else {
@@ -135,12 +136,11 @@ class TextManager {
                 if (state.currentStatus.logging) {
                     await this.manageLoginStatus(context, state);
                 }
-                // if (state.currentStatus.creatingTaskList) {
-                //     await this.manageCreateTaskListStatus(context, state);
-                // }
+                if (state.currentStatus.creatingTaskList) {
+                    await this.manageCreateTaskListStatus(context, state);
+                }
                 break;
         }
-        context.setState(state);
         return Promise.resolve();
     }
     /**
@@ -154,7 +154,7 @@ class TextManager {
      */
     static async manageRegisterStatus(context, state) {
         let next = true;
-        if (state.currentStatus.insertingUsername && _.isNull(state.data.username) && next) {
+        if (state.currentStatus.insertingUsername && utils_1.Utils.isNullOrUndefined(state.data.username) && next) {
             if (!(await utils_1.Utils.existsName(context.event.text))) {
                 state.data.username = context.event.text;
                 await context.sendMessage(messages_1.Messages.START_ASK_PASSWORD);
@@ -166,7 +166,7 @@ class TextManager {
                 await context.sendMessage(messages_1.Messages.START_NAME_TAKEN);
             }
         }
-        if (state.currentStatus.insertingPassword && _.isNull(state.data.password) && next) {
+        if (state.currentStatus.insertingPassword && utils_1.Utils.isNullOrUndefined(state.data.password) && next) {
             state.data.password = context.event.text;
             state.currentStatus.insertingPassword = false;
             await context.sendMessage(messages_1.Messages.START_ASK_DROPBOX, {
@@ -189,14 +189,14 @@ class TextManager {
             });
             next = false;
         }
-        if (state.currentStatus.insertingDropboxEmail && _.isNull(state.data.dropboxEmail) && next) {
+        if (state.currentStatus.insertingDropboxEmail && utils_1.Utils.isNullOrUndefined(state.data.dropboxEmail) && next) {
             state.data.dropboxEmail = context.event.text;
             state.currentStatus.insertingDropboxEmail = false;
             state.currentStatus.insertingDropboxPassword = true;
             await context.sendMessage(messages_1.Messages.START_ASK_DROPBOX_PASSWORD);
             next = false;
         }
-        if (state.currentStatus.insertingDropboxPassword && _.isNull(state.data.dropboxPassword) && next) {
+        if (state.currentStatus.insertingDropboxPassword && utils_1.Utils.isNullOrUndefined(state.data.dropboxPassword) && next) {
             state.data.dropboxPassword = context.event.text;
             state.currentStatus.insertingDropboxPassword = false;
             await utils_1.Utils.registerUser(context, state.data.username, state.data.password, state.data.dropboxEmail, state.data.dropboxPassword);
@@ -216,7 +216,7 @@ class TextManager {
      */
     static async manageLoginStatus(context, state) {
         let next = true;
-        if (state.currentStatus.insertingUsername && _.isNull(state.data.username) && next) {
+        if (state.currentStatus.insertingUsername && utils_1.Utils.isNullOrUndefined(state.data.username) && next) {
             if (await utils_1.Utils.existsName(context.event.text)) {
                 state.data.username = context.event.text;
                 await context.sendMessage(messages_1.Messages.START_LOGIN_PASSWORD);
@@ -228,15 +228,19 @@ class TextManager {
                 await context.sendMessage(messages_1.Messages.START_UNKNOWN_NAME);
             }
         }
-        if (state.currentStatus.insertingPassword && _.isNull(state.data.password) && next) {
-            state.data.password = context.event.text;
-            const userLogged = await utils_1.Utils.loginUser(state.data.username, state.data.password);
-            if (!_.isNull(userLogged) && !_.isUndefined(userLogged)) {
+        if (state.currentStatus.insertingPassword && next) {
+            const userLogged = await utils_1.Utils.loginUser(state.data.username.toLocaleLowerCase(), context.event.text);
+            if (!utils_1.Utils.isNullOrUndefined(userLogged)) {
+                state.user = userLogged;
                 state.data.userId = userLogged.id;
                 state.data.username = userLogged.username;
                 state.data.password = userLogged.password;
-                state.data.dropboxEmail = userLogged.dropbox.email;
-                state.data.dropboxPassword = userLogged.dropbox.password;
+                if (!utils_1.Utils.isNullOrUndefined(userLogged.dropbox) &&
+                    !utils_1.Utils.isNullOrUndefined(userLogged.dropbox.email) &&
+                    !utils_1.Utils.isNullOrUndefined(userLogged.dropbox.password)) {
+                    state.data.dropboxEmail = userLogged.dropbox.email;
+                    state.data.dropboxPassword = userLogged.dropbox.password;
+                }
                 state.currentStatus.insertingPassword = false;
                 state.currentStatus.insertingUsername = false;
                 state.currentStatus.logging = false;
@@ -245,6 +249,22 @@ class TextManager {
             }
             else {
                 await context.sendMessage(messages_1.Messages.START_WRONG_PASSWORD);
+            }
+        }
+        return Promise.resolve();
+    }
+    static async manageCreateTaskListStatus(context, state) {
+        if (utils_1.Utils.isNullOrUndefined(state.auxData.taskListName)) {
+            const newTaskList = await typeorm_1.getConnection()
+                .getRepository(taskList_entity_1.TaskList)
+                .save({ name: context.event.text, user: state.user, tasks: [] });
+            if (!_.isNull(newTaskList) && !_.isUndefined(newTaskList)) {
+                await context.sendMessage('Lista de tareas creada correctamente,¿quieres añadirle tareas?');
+                await context.sendMessage('Falta por programar este camino');
+                state.currentStatus.creatingTaskList = false;
+            }
+            else {
+                await context.sendMessage('Algo ha fallado, intentalo de nuevo porfavor');
             }
         }
         return Promise.resolve();

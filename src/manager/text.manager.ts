@@ -3,6 +3,7 @@ import { IState, initialState } from '../states';
 import { Utils } from '../utils';
 import * as _ from 'lodash';
 import { getConnection } from 'typeorm';
+import { TaskList } from '../entities/taskList.entity';
 /**
  * Class Text manager that manages all text event received
  *
@@ -41,7 +42,7 @@ export class TextManager {
                 break;
 
             case '/settings':
-                if (_.isNull(state.data.userId) || _.isUndefined(state.data.userId)) {
+                if (Utils.isNullOrUndefined(state.data.userId)) {
                     await context.sendMessage(Messages.DONT_KNOW_YOU);
                 } else {
                     await context.sendMessage('Ajustes', {
@@ -78,7 +79,7 @@ export class TextManager {
                 break;
 
             case '/task':
-                if (_.isNull(state.data.userId) || _.isUndefined(state.data.userId)) {
+                if (Utils.isNullOrUndefined(state.user)) {
                     await context.sendMessage(Messages.DONT_KNOW_YOU);
                 } else {
                     await context.sendMessage('¿Que quieres hacer?', {
@@ -133,13 +134,12 @@ export class TextManager {
                     await this.manageLoginStatus(context, state);
                 }
 
-                // if (state.currentStatus.creatingTaskList) {
-                //     await this.manageCreateTaskListStatus(context, state);
-                // }
+                if (state.currentStatus.creatingTaskList) {
+                    await this.manageCreateTaskListStatus(context, state);
+                }
 
                 break;
         }
-        context.setState(state);
         return Promise.resolve();
     }
 
@@ -154,7 +154,7 @@ export class TextManager {
      */
     public static async manageRegisterStatus(context: any, state: IState): Promise<void> {
         let next = true;
-        if (state.currentStatus.insertingUsername && _.isNull(state.data.username) && next) {
+        if (state.currentStatus.insertingUsername && Utils.isNullOrUndefined(state.data.username) && next) {
             if (!(await Utils.existsName(context.event.text))) {
                 state.data.username = context.event.text;
                 await context.sendMessage(Messages.START_ASK_PASSWORD);
@@ -165,7 +165,7 @@ export class TextManager {
                 await context.sendMessage(Messages.START_NAME_TAKEN);
             }
         }
-        if (state.currentStatus.insertingPassword && _.isNull(state.data.password) && next) {
+        if (state.currentStatus.insertingPassword && Utils.isNullOrUndefined(state.data.password) && next) {
             state.data.password = context.event.text;
             state.currentStatus.insertingPassword = false;
             await context.sendMessage(Messages.START_ASK_DROPBOX, {
@@ -188,7 +188,7 @@ export class TextManager {
             });
             next = false;
         }
-        if (state.currentStatus.insertingDropboxEmail && _.isNull(state.data.dropboxEmail) && next) {
+        if (state.currentStatus.insertingDropboxEmail && Utils.isNullOrUndefined(state.data.dropboxEmail) && next) {
             state.data.dropboxEmail = context.event.text;
             state.currentStatus.insertingDropboxEmail = false;
             state.currentStatus.insertingDropboxPassword = true;
@@ -196,7 +196,7 @@ export class TextManager {
             next = false;
         }
 
-        if (state.currentStatus.insertingDropboxPassword && _.isNull(state.data.dropboxPassword) && next) {
+        if (state.currentStatus.insertingDropboxPassword && Utils.isNullOrUndefined(state.data.dropboxPassword) && next) {
             state.data.dropboxPassword = context.event.text;
             state.currentStatus.insertingDropboxPassword = false;
 
@@ -219,7 +219,7 @@ export class TextManager {
      */
     public static async manageLoginStatus(context: any, state: IState): Promise<void> {
         let next = true;
-        if (state.currentStatus.insertingUsername && _.isNull(state.data.username) && next) {
+        if (state.currentStatus.insertingUsername && Utils.isNullOrUndefined(state.data.username) && next) {
             if (await Utils.existsName(context.event.text)) {
                 state.data.username = context.event.text;
                 await context.sendMessage(Messages.START_LOGIN_PASSWORD);
@@ -230,16 +230,21 @@ export class TextManager {
                 await context.sendMessage(Messages.START_UNKNOWN_NAME);
             }
         }
-        if (state.currentStatus.insertingPassword && _.isNull(state.data.password) && next) {
-            state.data.password = context.event.text;
-
-            const userLogged = await Utils.loginUser(state.data.username, state.data.password);
-            if (!_.isNull(userLogged) && !_.isUndefined(userLogged)) {
+        if (state.currentStatus.insertingPassword && next) {
+            const userLogged = await Utils.loginUser(state.data.username.toLocaleLowerCase(), context.event.text);
+            if (!Utils.isNullOrUndefined(userLogged)) {
+                state.user = userLogged;
                 state.data.userId = userLogged.id;
                 state.data.username = userLogged.username;
                 state.data.password = userLogged.password;
-                state.data.dropboxEmail = userLogged.dropbox.email;
-                state.data.dropboxPassword = userLogged.dropbox.password;
+                if (
+                    !Utils.isNullOrUndefined(userLogged.dropbox) &&
+                    !Utils.isNullOrUndefined(userLogged.dropbox.email) &&
+                    !Utils.isNullOrUndefined(userLogged.dropbox.password)
+                ) {
+                    state.data.dropboxEmail = userLogged.dropbox.email;
+                    state.data.dropboxPassword = userLogged.dropbox.password;
+                }
                 state.currentStatus.insertingPassword = false;
                 state.currentStatus.insertingUsername = false;
                 state.currentStatus.logging = false;
@@ -252,19 +257,19 @@ export class TextManager {
         return Promise.resolve();
     }
 
-    // public static async manageCreateTaskListStatus(context: any, state: IState): Promise<void> {
-    //     if (_.isNull(state.auxData.taskListName)) {
-    //         const newTaskList = await getConnection()
-    //             .getRepository(TaskList)
-    //             .save({ name: context.event.text });
-    //         if (!_.isNull(newTaskList) && !_.isUndefined(newTaskList)) {
-    //             await context.sendMessage('Lista de tareas creada correctamente,¿quieres añadirle tareas?');
-    //             await context.sendMessage('Falta por programar este camino');
-    //             state.currentStatus.creatingTaskList = false;
-    //         } else {
-    //             await context.sendMessage('Algo ha fallado, intentalo de nuevo porfavor');
-    //         }
-    //     }
-    //     return Promise.resolve();
-    // }
+    public static async manageCreateTaskListStatus(context: any, state: IState): Promise<void> {
+        if (Utils.isNullOrUndefined(state.auxData.taskListName)) {
+            const newTaskList = await getConnection()
+                .getRepository(TaskList)
+                .save({ name: context.event.text, user: state.user, tasks: [] });
+            if (!_.isNull(newTaskList) && !_.isUndefined(newTaskList)) {
+                await context.sendMessage('Lista de tareas creada correctamente,¿quieres añadirle tareas?');
+                await context.sendMessage('Falta por programar este camino');
+                state.currentStatus.creatingTaskList = false;
+            } else {
+                await context.sendMessage('Algo ha fallado, intentalo de nuevo porfavor');
+            }
+        }
+        return Promise.resolve();
+    }
 }

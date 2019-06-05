@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initialState = {
+    user: null,
     data: {
         userId: null,
         username: null,

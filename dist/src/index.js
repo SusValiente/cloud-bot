@@ -22,10 +22,7 @@ require('dotenv').config();
 const options = {
     type: 'sqlite',
     database: './db/cloud-bot.db',
-    entities: [
-        // any entity file under src/modules
-        __dirname + '/*.entity.ts'
-    ],
+    entities: ['./dist/**/*.entity.js'],
     logging: true,
     synchronize: true,
 };

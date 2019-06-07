@@ -44,7 +44,7 @@ async function main() {
                 await CallbackManager.manageCallback(context);
             }
         } catch (error) {
-            await context.sendMessage(error);
+            await context.sendMessage(error.message);
         }
     });
 

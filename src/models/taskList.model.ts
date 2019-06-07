@@ -12,4 +12,5 @@ export class ITaskList {
     name: string;
     user: IUser;
     tasks: ITask[];
+    completed: boolean;
 }

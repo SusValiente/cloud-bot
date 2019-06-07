@@ -8,7 +8,7 @@ import { ITaskList } from './taskList.model';
  */
 export class ITask {
     id: string;
-    name: string;
     description: string;
     taskList: ITaskList;
+    completed: boolean;
 }

@@ -8,11 +8,11 @@ export class Task implements ITask {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ type: 'varchar', length: 250, nullable: false, unique: true })
-    name: string;
-
     @Column({ type: 'varchar', length: 250, nullable: false })
     description: string;
+
+    @Column({ type: 'boolean', nullable: false, default: false })
+    completed: boolean;
 
     @ManyToOne(type => TaskList, list => list.tasks, { cascade: true, onDelete: 'CASCADE' })
     taskList: ITaskList;

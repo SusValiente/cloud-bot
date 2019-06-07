@@ -13,6 +13,9 @@ export class TaskList implements ITaskList {
     @Column({ type: 'varchar', length: 250, nullable: false, unique: true })
     name: string;
 
+    @Column({ type: 'boolean', nullable: false, default: false })
+    completed: boolean;
+
     @ManyToOne(type => User, user => user.taskLists, { cascade: true, onDelete: 'CASCADE' })
     user: IUser;
 

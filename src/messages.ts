@@ -1,5 +1,6 @@
 /* tslint:disable:max-line-length */
 export enum Messages {
+    ERROR = 'Algo ha ido mal, intentalo de nuevo porfavor',
     START = 'Bienvenido! Mi nombre es cloud bot y puedo ayudarte de muchas maneras, pero antes respondeme a una cosa, ¿Te conozco?',
     START_KNOWN_USER = 'En ese caso dime tu nombre porfavor',
     START_UNKNOWN_USER = 'Mi trabajo es ayudarte, puedo gestionar tus archivos de Dropbox o recordarte cosas para que no se te olviden, pero tengo que conocerte un poco antes, ¿Podrias decirme como quieres que te llame?',
@@ -14,6 +15,12 @@ export enum Messages {
     START_WRONG_PASSWORD = 'Contraseña incorrecta, prueba de nuevo',
     DONT_KNOW_YOU = 'Todavía no se quien eres, utiliza /start para que nos podamos conocer',
     TASK_LIST_NAME = '¿Como se va a llamar esa lista de tareas?',
+    TASK_LIST_DONE = 'Lista creada correctamente',
+    ADD_TASK = '¿En qué consiste la tarea?',
+    TASK_LIST_UNDEFINED = 'No hay ninguna lista de tareas seleccionada',
+    EMPTY_TASKS = 'No tienes ninguna lista actualmente, ¿Quieres crear una?',
+    DONT_CREATE_TASKLIST = 'Para crear una mas adelante, puedes utilizar el comando /task',
+    TASK_COMPLETED = 'Tarea completada'
 }
 
 export const HELP = `

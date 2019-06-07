@@ -1,13 +1,15 @@
 import { IUser } from './models/user.model';
+import { ITaskList } from './models/taskList.model';
 
 export interface IState {
-    data: IData;
+    userData: IData;
     currentStatus: IChatStatus;
-    auxData: IAuxData;
+    taskListData: ITaskListData;
     user: IUser;
+    taskList: ITaskList;
 }
 
-export interface IAuxData {
+export interface ITaskListData {
     taskListName: string;
 }
 
@@ -28,11 +30,13 @@ export interface IChatStatus {
     registering: boolean;
     logging: boolean;
     creatingTaskList: boolean;
+    addingTask: boolean;
 }
 
 export const initialState: IState = {
+    taskList: null,
     user: null,
-    data: {
+    userData: {
         userId: null,
         username: null,
         password: null,
@@ -48,8 +52,9 @@ export const initialState: IState = {
         registering: false,
         logging: false,
         creatingTaskList: false,
+        addingTask: false,
     },
-    auxData: {
+    taskListData: {
         taskListName: null,
     },
 };

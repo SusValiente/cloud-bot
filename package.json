@@ -8,7 +8,7 @@
     "build": "tsc",
     "prestart": "npm run build",
     "start": "node .",
-    "watch": "npm run build && (tsc -p tsconfig.back.json -watch |  nodemon  --inspect=5861 ./dist/index.js)",
+    "watch": "npm run build && (tsc -p tsconfig.back.json -watch |  nodemon  --inspect=5861 ./dist/src/index.js)",
     "prettier:write": "prettier --write ./src/**/*.ts index.ts"
   },
   "dependencies": {

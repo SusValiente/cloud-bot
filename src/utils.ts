@@ -121,10 +121,10 @@ export class Utils {
      * @memberof Utils
      */
     public static async getTasksLists(loggedUser: IUser): Promise<ITaskList[]> {
-
         const taskLists: ITaskList[] = await getConnection()
-            .getRepository(TaskList).find({
-                where: { user: loggedUser }
+            .getRepository(TaskList)
+            .find({
+                where: { user: loggedUser },
             });
         return Promise.resolve(taskLists);
     }
@@ -139,8 +139,9 @@ export class Utils {
      */
     public static async getTasks(givenTaskList: ITaskList): Promise<ITask[]> {
         const tasks: ITask[] = await getConnection()
-            .getRepository(Task).find({
-                where: { taskList: givenTaskList }
+            .getRepository(Task)
+            .find({
+                where: { taskList: givenTaskList },
             });
         return Promise.resolve(tasks);
     }
@@ -154,31 +155,11 @@ export class Utils {
      * @memberof Utils
      */
     public static async getTaskList(taskListId: string): Promise<ITaskList> {
-
         const taskList: ITaskList = await getConnection()
-            .getRepository(TaskList).findOne({
-                where: { id: taskListId }
+            .getRepository(TaskList)
+            .findOne({
+                where: { id: taskListId },
             });
         return Promise.resolve(taskList);
-    }
-
-    /**
-     * @method completeTask deletes task
-     *
-     * @static
-     * @param {string} taskId
-     * @returns {Promise<void>}
-     * @memberof Utils
-     */
-    public static async completeTask(taskId: string): Promise<void> {
-
-        await await getConnection()
-            .getRepository(Task)
-            .createQueryBuilder()
-            .delete()
-            .where('id = :value', { value: taskId })
-            .execute();
-
-        return Promise.resolve();
     }
 }

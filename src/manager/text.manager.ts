@@ -13,9 +13,7 @@ import { Task } from '../entities/task.entity';
  * @class TextManager
  */
 export class TextManager {
-
     public static async manageText(context: any): Promise<void> {
-
         let state: IState = context.state;
         switch (context.event.text) {
             case '/start':
@@ -279,34 +277,32 @@ export class TextManager {
      * @memberof TextManager
      */
     public static async manageCreateTaskListStatus(context: any, state: IState): Promise<void> {
-        if (Utils.isNullOrUndefined(state.taskListData.taskListName)) {
-            const newTaskList = await getConnection()
-                .getRepository(TaskList)
-                .save({ name: context.event.text, user: state.user, tasks: [] });
-            if (!_.isNull(newTaskList) && !_.isUndefined(newTaskList)) {
-                state.currentStatus.creatingTaskList = false;
-                state.taskList = newTaskList;
-                await context.sendMessage('Lista de tareas creada correctamente,¿quieres añadirle alguna tarea?', {
-                    reply_markup: {
-                        inline_keyboard: [
-                            [
-                                {
-                                    text: 'Si',
-                                    callback_data: 'create_task_list',
-                                },
-                            ],
-                            [
-                                {
-                                    text: 'No',
-                                    callback_data: 'dont_add_task',
-                                },
-                            ],
+        const newTaskList = await getConnection()
+            .getRepository(TaskList)
+            .save({ name: context.event.text, user: state.user, tasks: [] });
+        if (!_.isNull(newTaskList) && !_.isUndefined(newTaskList)) {
+            state.currentStatus.creatingTaskList = false;
+            state.taskList = newTaskList;
+            await context.sendMessage('Lista de tareas creada correctamente,¿quieres añadirle alguna tarea?', {
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            {
+                                text: 'Si',
+                                callback_data: 'add_task',
+                            },
                         ],
-                    },
-                });
-            } else {
-                await context.sendMessage(Messages.ERROR);
-            }
+                        [
+                            {
+                                text: 'No',
+                                callback_data: 'dont_add_task',
+                            },
+                        ],
+                    ],
+                },
+            });
+        } else {
+            await context.sendMessage(Messages.ERROR);
         }
         return Promise.resolve();
     }

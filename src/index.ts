@@ -1,12 +1,9 @@
 // TYPESCRIPT IMPORTS
 import { config } from '../bottender.config';
 import { ConnectionOptions, createConnection } from 'typeorm';
-import { User } from './entities/user';
 import { TextManager } from './manager/text.manager';
 import { CallbackManager } from './manager/callback.manager';
 import * as _ from 'lodash';
-import { Task } from './entities/task';
-import { Dropbox } from './entities/dropbox';
 import { initialState } from './states';
 
 //  JAVASCRIPT IMPORTS
@@ -19,7 +16,7 @@ require('dotenv').config();
 const options: ConnectionOptions = {
     type: 'sqlite',
     database: './db/cloud-bot.db',
-    entities: [User, Task, Dropbox],
+    entities: ['./dist/**/*.entity.js'],
     logging: true,
     synchronize: true,
 };
@@ -30,7 +27,6 @@ const bot = new TelegramBot({
 });
 
 async function main() {
-
     bot.setInitialState(initialState);
     // typeorm connection
     const connection = await createConnection(options);
@@ -41,7 +37,6 @@ async function main() {
 
     bot.onEvent(async (context: any) => {
         try {
-            console.log(context.state);
             if (context.event.isText) {
                 await TextManager.manageText(context);
             }
@@ -49,7 +44,7 @@ async function main() {
                 await CallbackManager.manageCallback(context);
             }
         } catch (error) {
-            console.log(error);
+            await context.sendMessage(error.message);
         }
     });
 

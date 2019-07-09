@@ -6,6 +6,8 @@ import { getConnection } from 'typeorm';
 import { TaskList } from '../entities/taskList.entity';
 import { ITaskList } from '../models/taskList.model';
 import { Task } from '../entities/task.entity';
+import { DropboxUtils } from '../dropboxUtils';
+
 /**
  * Class Text manager that manages all text event received
  *
@@ -13,7 +15,7 @@ import { Task } from '../entities/task.entity';
  * @class TextManager
  */
 export class TextManager {
-    public static async manageText(context: any): Promise<void> {
+    public static async manageText(context: any, dbx: DropboxUtils): Promise<void> {
         let state: IState = context.state;
         switch (context.event.text) {
             case '/start':
@@ -113,9 +115,7 @@ export class TextManager {
                             Tus datos:
                             Nombre de usuario: ${state.userData.username}
                             Contraseña: ${state.userData.password}
-                            Cuenta de dropbox: ${state.userData.dropboxEmail != null ? state.userData.dropboxEmail : 'Sin definir'}
-
-                            `
+                        `
                     );
                 } else {
                     await context.sendMessage(Messages.DONT_KNOW_YOU);
@@ -124,13 +124,48 @@ export class TextManager {
                 break;
 
             case '/testing':
-                const connection = await getConnection();
-                await context.sendMessage(connection);
+                /**
+                 * Pasos a seguir para subir un archivo a dropbox . .
+                 *
+                 * 1 - Cuando le pase la imagen desde telegram, debo conseguir el file_id
+                 *     para llamar a la api de telegram "GET FILE" y asi conseguir el path de ese archivo
+                 *
+                 * 2 - Una vez conseguido el path del archivo debemos montar el enlace de descarga
+                 *     para poder mandarselo a la peticion de subida de dropbox save_url, mirar ejemplo
+                 *     "Download file"
+                 *
+                 * 3 - Una vez montado el enlace de descarga del archivo llamar a "Upload file by URL" de
+                 *     dropbox, y el archivo será mandado
+                 *
+                 * Sera necesario (seguramente) implementar esas llamadas a las APIs
+                 * para ello creo que typescript tiene como nativo algo llamado fetch
+                 *
+                 */
+
+                // por algun motivo, esta mierda me está redirigiendo a la api de telegram, no a la de dropbox
+                // const dbx = new Dropbox({
+                //     fetch
+                // });
+
+                // dbx.setClientId('1');
+                // dbx.setClientSecret('1');
+                // const intentoDeToken = await dbx.getAccessTokenFromCode('', '');
+                // console.log(intentoDeToken);
+
+                if (context.state.user) {
+                    const user = await Utils.getUser(context.state.user.userId);
+                    console.log('user -> ' + user.username + ' code - > ' + user.dropboxCode);
+                    const token = await dbx.getToken(user.dropboxCode);
+                    console.log('TOKEN -> ' + token);
+                } else {
+                    console.log('no hay usuario');
+                }
+
                 break;
 
             default:
                 if (state.currentStatus.registering) {
-                    await this.manageRegisterStatus(context, state);
+                    await this.manageRegisterStatus(context, state, dbx);
                 }
                 if (state.currentStatus.logging) {
                     await this.manageLoginStatus(context, state);
@@ -162,7 +197,7 @@ export class TextManager {
      * @returns {Promise<void>}
      * @memberof TextManager
      */
-    public static async manageRegisterStatus(context: any, state: IState): Promise<void> {
+    public static async manageRegisterStatus(context: any, state: IState, dbx: DropboxUtils): Promise<void> {
         let next = true;
         if (state.currentStatus.insertingUsername && Utils.isNullOrUndefined(state.userData.username) && next) {
             if (!(await Utils.existsName(context.event.text))) {
@@ -178,13 +213,18 @@ export class TextManager {
         if (state.currentStatus.insertingPassword && Utils.isNullOrUndefined(state.userData.password) && next) {
             state.userData.password = context.event.text;
             state.currentStatus.insertingPassword = false;
+
+            await Utils.registerUser(context, state.userData.username, context.event.text);
+
+            const authUrl = dbx.getAuthUrl();
+
             await context.sendMessage(Messages.START_ASK_DROPBOX, {
                 reply_markup: {
                     inline_keyboard: [
                         [
                             {
                                 text: 'Vincular Dropbox',
-                                callback_data: 'sync_dropbox',
+                                url: authUrl,
                             },
                         ],
                         [
@@ -198,23 +238,7 @@ export class TextManager {
             });
             next = false;
         }
-        if (state.currentStatus.insertingDropboxEmail && Utils.isNullOrUndefined(state.userData.dropboxEmail) && next) {
-            state.userData.dropboxEmail = context.event.text;
-            state.currentStatus.insertingDropboxEmail = false;
-            state.currentStatus.insertingDropboxPassword = true;
-            await context.sendMessage(Messages.START_ASK_DROPBOX_PASSWORD);
-            next = false;
-        }
 
-        if (state.currentStatus.insertingDropboxPassword && Utils.isNullOrUndefined(state.userData.dropboxPassword) && next) {
-            state.userData.dropboxPassword = context.event.text;
-            state.currentStatus.insertingDropboxPassword = false;
-
-            await Utils.registerUser(context, state.userData.username, state.userData.password, state.userData.dropboxEmail, state.userData.dropboxPassword);
-
-            await context.sendMessage(Messages.START_FINISHED);
-            next = false;
-        }
         return Promise.resolve();
     }
 
@@ -247,14 +271,6 @@ export class TextManager {
                 state.userData.userId = userLogged.id;
                 state.userData.username = userLogged.username;
                 state.userData.password = userLogged.password;
-                if (
-                    !Utils.isNullOrUndefined(userLogged.dropbox) &&
-                    !Utils.isNullOrUndefined(userLogged.dropbox.email) &&
-                    !Utils.isNullOrUndefined(userLogged.dropbox.password)
-                ) {
-                    state.userData.dropboxEmail = userLogged.dropbox.email;
-                    state.userData.dropboxPassword = userLogged.dropbox.password;
-                }
                 state.currentStatus.insertingPassword = false;
                 state.currentStatus.insertingUsername = false;
                 state.currentStatus.logging = false;

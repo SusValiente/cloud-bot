@@ -7,9 +7,7 @@ export enum Messages {
     START_NAME_TAKEN = 'Ya conozco a un usuario con ese nombre, dime otro porfavor',
     START_ASK_PASSWORD = 'Necesito una contraseña que solo conozcamos tu y yo, para que asi pueda saber que eres tu realmente en un futuro, dime una contraseña porfavor',
     START_LOGIN_PASSWORD = 'Dime la contraseña que me dijiste cuando nos conocimos por primera vez',
-    START_ASK_DROPBOX = 'Me facilitarias mucho mi trabajo si me proporcionaras una cuenta tuya de Dropbox, ¿Quieres vincular una cuenta de Dropbox?',
-    START_ASK_DROPBOX_EMAIL = 'Dime el correo de tu cuenta',
-    START_ASK_DROPBOX_PASSWORD = 'Dime la contraseña de tu cuenta, (no se la diré a nadie)',
+    START_ASK_DROPBOX = 'Podré serte de mucha utilidad si me facilitaras acceso a tu cuenta de Dropbox, ¿Quieres vincular una cuenta?',
     START_FINISHED = 'Todo listo entonces ! Utiliza el comando /help si necesitas mas información',
     START_UNKNOWN_NAME = 'No conozco a ningun usuario con ese nombre, prueba de nuevo',
     START_WRONG_PASSWORD = 'Contraseña incorrecta, prueba de nuevo',
@@ -22,6 +20,7 @@ export enum Messages {
     DONT_CREATE_TASKLIST = 'Para crear una mas adelante, puedes utilizar el comando /task',
     TASK_COMPLETED = 'Tarea completada',
     EMPTY_TASK_LIST = 'La lista no contiene ninguna tarea actuamente, ¿Quieres añadirle una?',
+    REGISTERED_COMPLETE = 'Perfecto, te he registrado correctamente',
 }
 
 export const HELP = `

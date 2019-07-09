@@ -2,13 +2,12 @@ import { getConnection } from 'typeorm';
 import { User } from './entities/user.entity';
 import { IData } from './states';
 import { IUser } from './models/user.model';
-import { IDropbox } from './models/dropbox.model';
-import { Dropbox } from './entities/dropbox.entity';
 import * as _ from 'lodash';
 import { ITaskList } from './models/taskList.model';
 import { TaskList } from './entities/taskList.entity';
 import { ITask } from './models/task.model';
 import { Task } from './entities/task.entity';
+import { Messages } from './messages';
 
 export class Utils {
     /**
@@ -40,39 +39,22 @@ export class Utils {
      * @returns {Promise<void>}
      * @memberof Utils
      */
-    public static async registerUser(
-        context: any,
-        givenUsername: string,
-        givenPassword: string,
-        givenDropboxEmail?: string,
-        givenDropboxPassword?: string
-    ): Promise<void> {
-        const userRepository = await getConnection().getRepository(User);
-        const dropboxRepository = await getConnection().getRepository(Dropbox);
+    public static async registerUser(context: any, givenUsername: string, givenPassword: string): Promise<void> {
+        try {
+            const userRepository = await getConnection().getRepository(User);
 
-        const newUser: IUser = await userRepository.save({ username: givenUsername.toLocaleLowerCase(), password: givenPassword });
-        let userData: IData = {
-            userId: newUser.id,
-            username: newUser.username,
-            password: newUser.password,
-        };
-        if (givenDropboxEmail != null && givenDropboxPassword != null) {
-            const dropboxAccount: IDropbox = await dropboxRepository.save({
-                email: givenDropboxEmail,
-                password: givenDropboxPassword,
-            });
-            newUser.dropbox = dropboxAccount;
-            await userRepository.save(newUser);
-            userData = {
+            const newUser: IUser = await userRepository.save({ username: givenUsername.toLocaleLowerCase(), password: givenPassword });
+            const userData: IData = {
                 userId: newUser.id,
                 username: newUser.username,
                 password: newUser.password,
-                dropboxEmail: dropboxAccount.email,
-                dropboxPassword: dropboxAccount.password,
             };
+            context.setState({ user: newUser, data: userData });
+            await context.sendMessage(Messages.REGISTERED_COMPLETE);
+            return Promise.resolve();
+        } catch (error) {
+            await context.sendMessage(error.message);
         }
-        context.setState({ user: newUser, data: userData });
-        return Promise.resolve();
     }
 
     /**
@@ -91,7 +73,26 @@ export class Utils {
                     username: givenUsername,
                     password: givenPassword,
                 },
-                relations: ['dropbox'],
+            });
+
+        return Promise.resolve(user);
+    }
+
+    /**
+     * @method getUser returns the user by id
+     *
+     * @static
+     * @param {string} id
+     * @returns {Promise<IUser>}
+     * @memberof Utils
+     */
+    public static async getUser(id: string): Promise<IUser> {
+        const user = await getConnection()
+            .getRepository(User)
+            .findOne({
+                where: {
+                    userId: id,
+                },
             });
 
         return Promise.resolve(user);

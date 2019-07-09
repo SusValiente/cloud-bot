@@ -6,6 +6,7 @@ import * as _ from 'lodash';
 import { getConnection } from 'typeorm';
 import { Task } from '../entities/task.entity';
 import { TaskList } from '../entities/taskList.entity';
+
 /**
  * Class Callback manager that manages all callback event received
  *
@@ -46,10 +47,6 @@ export class CallbackManager {
                 await context.sendMessage(Messages.START_KNOWN_USER);
                 state.currentStatus.insertingUsername = true;
                 state.currentStatus.logging = true;
-                break;
-            case 'sync_dropbox':
-                state.currentStatus.insertingDropboxEmail = true;
-                await context.sendMessage(Messages.START_ASK_DROPBOX_EMAIL);
                 break;
             case 'ignore_dropbox':
                 state.currentStatus.dropboxActive = false;

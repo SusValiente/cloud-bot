@@ -1,6 +1,5 @@
 import { Entity, Unique, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, JoinColumn } from 'typeorm';
 import { IUser } from '../models/user.model';
-import { Dropbox } from './dropbox.entity';
 import { TaskList } from './taskList.entity';
 
 @Entity()
@@ -15,9 +14,8 @@ export class User implements IUser {
     @Column({ type: 'varchar', length: 250, nullable: false })
     password: string;
 
-    @OneToOne(type => Dropbox, { cascade: true, onDelete: 'CASCADE' })
-    @JoinColumn()
-    dropbox: Dropbox;
+    @Column({ type: 'varchar', nullable: true })
+    dropboxCode: string;
 
     @OneToMany(type => TaskList, list => list.user)
     taskLists: TaskList[];

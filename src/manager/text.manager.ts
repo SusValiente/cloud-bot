@@ -16,6 +16,8 @@ import { DropboxUtils } from '../dropboxUtils';
  */
 export class TextManager {
     public static async manageText(context: any, dbx: DropboxUtils): Promise<void> {
+        const passwordRegexp: RegExp = new RegExp('/(?=.{8,})');
+        const usernameRegexp: RegExp = new RegExp('/(?=.{4,})');
         let state: IState = context.state;
         switch (context.event.text) {
             case '/start':
@@ -46,7 +48,7 @@ export class TextManager {
                 break;
 
             case '/settings':
-                if (Utils.isNullOrUndefined(state.userData.userId)) {
+                if (_.isNil(state.userData.userId)) {
                     await context.sendMessage(Messages.DONT_KNOW_YOU);
                 } else {
                     await context.sendMessage('Ajustes', {
@@ -83,7 +85,7 @@ export class TextManager {
                 break;
 
             case '/task':
-                if (Utils.isNullOrUndefined(state.user)) {
+                if (_.isNil(state.user)) {
                     await context.sendMessage(Messages.DONT_KNOW_YOU);
                 } else {
                     await context.sendMessage('¿Que quieres hacer?', {
@@ -165,7 +167,7 @@ export class TextManager {
 
             default:
                 if (state.currentStatus.registering) {
-                    await this.manageRegisterStatus(context, state, dbx);
+                    await this.manageRegisterStatus(context, state, dbx, usernameRegexp, passwordRegexp);
                 }
                 if (state.currentStatus.logging) {
                     await this.manageLoginStatus(context, state);
@@ -175,7 +177,7 @@ export class TextManager {
                     await this.manageCreateTaskListStatus(context, state);
                 }
                 if (state.currentStatus.addingTask) {
-                    if (!Utils.isNullOrUndefined(state.taskList)) {
+                    if (!_.isNil(state.taskList)) {
                         delete state.taskList.tasks;
                         await this.manageAddingTaskStatus(state.taskList, context, state);
                     } else {
@@ -194,12 +196,19 @@ export class TextManager {
      * @static
      * @param {*} context
      * @param {IState} state
+     * @param {DropboxUtils} dbx
+     * @param {RegExp} usernameRegexp
+     * @param {RegExp} passwordRegexp
      * @returns {Promise<void>}
      * @memberof TextManager
      */
-    public static async manageRegisterStatus(context: any, state: IState, dbx: DropboxUtils): Promise<void> {
+    public static async manageRegisterStatus(context: any, state: IState, dbx: DropboxUtils, usernameRegexp: RegExp, passwordRegexp: RegExp): Promise<void> {
         let next = true;
-        if (state.currentStatus.insertingUsername && Utils.isNullOrUndefined(state.userData.username) && next) {
+        if (state.currentStatus.insertingUsername && _.isNil(state.userData.username) && next) {
+            if (!usernameRegexp.test(context.event.payload)) {
+                await context.sendMessage(Messages.USERNAME_TOO_SHORT);
+                return Promise.resolve();
+            }
             if (!(await Utils.existsName(context.event.text))) {
                 state.userData.username = context.event.text;
                 await context.sendMessage(Messages.START_ASK_PASSWORD);
@@ -210,7 +219,11 @@ export class TextManager {
                 await context.sendMessage(Messages.START_NAME_TAKEN);
             }
         }
-        if (state.currentStatus.insertingPassword && Utils.isNullOrUndefined(state.userData.password) && next) {
+        if (state.currentStatus.insertingPassword && _.isNil(state.userData.password) && next) {
+            if (!passwordRegexp.test(context.event.payload)) {
+                await context.sendMessage(Messages.PASSWORD_TOO_SHORT);
+                return Promise.resolve();
+            }
             state.userData.password = context.event.text;
             state.currentStatus.insertingPassword = false;
 
@@ -253,7 +266,7 @@ export class TextManager {
      */
     public static async manageLoginStatus(context: any, state: IState): Promise<void> {
         let next = true;
-        if (state.currentStatus.insertingUsername && Utils.isNullOrUndefined(state.userData.username) && next) {
+        if (state.currentStatus.insertingUsername && _.isNil(state.userData.username) && next) {
             if (await Utils.existsName(context.event.text)) {
                 state.userData.username = context.event.text;
                 await context.sendMessage(Messages.START_LOGIN_PASSWORD);
@@ -266,7 +279,7 @@ export class TextManager {
         }
         if (state.currentStatus.insertingPassword && next) {
             const userLogged = await Utils.loginUser(state.userData.username.toLocaleLowerCase(), context.event.text);
-            if (!Utils.isNullOrUndefined(userLogged)) {
+            if (!_.isNil(userLogged)) {
                 state.user = userLogged;
                 state.userData.userId = userLogged.id;
                 state.userData.username = userLogged.username;
@@ -330,7 +343,7 @@ export class TextManager {
                 description: context.event.text,
                 taskList: stateTaskList,
             });
-        if (!Utils.isNullOrUndefined(newTask)) {
+        if (!_.isNil(newTask)) {
             await context.sendMessage('Tarea añadida correctamente a la lista: ' + state.taskList.name + ' ¿Quieres añadir otra más?', {
                 reply_markup: {
                     inline_keyboard: [

@@ -99,21 +99,6 @@ export class Utils {
     }
 
     /**
-     * @method isNullOrUndefined returns true if the object is null or undefined
-     *
-     * @static
-     * @param {*} data
-     * @returns {boolean}
-     * @memberof Utils
-     */
-    public static isNullOrUndefined(data: any): boolean {
-        if (_.isNull(data) || _.isUndefined(data)) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * @method getTasksLists returns task list of the user
      *
      * @static

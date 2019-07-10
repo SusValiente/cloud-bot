@@ -1,6 +1,5 @@
 import { getConnection } from 'typeorm';
 import { User } from './entities/user.entity';
-import { IData } from './states';
 import { IUser } from './models/user.model';
 import * as _ from 'lodash';
 import { ITaskList } from './models/taskList.model';
@@ -44,12 +43,7 @@ export class Utils {
             const userRepository = await getConnection().getRepository(User);
 
             const newUser: IUser = await userRepository.save({ username: givenUsername.toLocaleLowerCase(), password: givenPassword });
-            const userData: IData = {
-                userId: newUser.id,
-                username: newUser.username,
-                password: newUser.password,
-            };
-            context.setState({ user: newUser, data: userData });
+            context.setState({ user: newUser });
             await context.sendMessage(Messages.REGISTERED_COMPLETE);
             return Promise.resolve();
         } catch (error) {

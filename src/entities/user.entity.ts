@@ -17,6 +17,9 @@ export class User implements IUser {
     @Column({ type: 'varchar', nullable: true })
     dropboxCode: string;
 
+    @Column({ type: 'varchar', nullable: true })
+    dropboxToken: string;
+
     @OneToMany(type => TaskList, list => list.user)
     taskLists: TaskList[];
 }

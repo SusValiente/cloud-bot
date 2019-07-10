@@ -46,8 +46,9 @@ async function connectTypeorm() {
 let auxiliarContext: any = null;
 
 const dbx = new DropboxUtils();
+const client = bot.connector.client;
 
-async function main(dbx: DropboxUtils) {
+async function main(dbx: DropboxUtils, client: any) {
     bot.onEvent(async (context: any) => {
         try {
             auxiliarContext = context;
@@ -55,7 +56,7 @@ async function main(dbx: DropboxUtils) {
                 await DocumentManager.manageDocument(context);
             }
             if (context.event.isPhoto) {
-                await PhotoManager.managePhoto(context);
+                await PhotoManager.managePhoto(context, dbx, client);
             }
             if (context.event.isText) {
                 await TextManager.manageText(context, dbx);
@@ -71,11 +72,13 @@ async function main(dbx: DropboxUtils) {
     const server = createServer(bot);
 
     server.get('/auth', async (req: any, res: any) => {
-        if (!_.isNil(auxiliarContext) && !_.isNil(req.query)) {
+        if (!_.isNil(auxiliarContext) && !_.isNil(req.query.code)) {
             await auxiliarContext.sendMessage(Messages.START_FINISHED);
             const userRepository = await getConnection().getRepository(User);
             const user = await userRepository.findOne({ where: { userId: auxiliarContext.state.user.userId } });
             user.dropboxCode = req.query.code;
+            const token = await dbx.getToken(req.query.code);
+            user.dropboxToken = token;
             await userRepository.save(user);
         }
         res.send(html);
@@ -88,4 +91,4 @@ async function main(dbx: DropboxUtils) {
     });
 }
 connectTypeorm();
-main(dbx);
+main(dbx, client);

@@ -12,4 +12,5 @@ export class IUser {
     password: string;
     taskLists: TaskList[];
     dropboxCode: string;
+    dropboxToken: string;
 }

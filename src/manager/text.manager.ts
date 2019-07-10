@@ -16,8 +16,8 @@ import { DropboxUtils } from '../dropboxUtils';
  */
 export class TextManager {
     public static async manageText(context: any, dbx: DropboxUtils): Promise<void> {
-        const passwordRegexp: RegExp = new RegExp('/(?=.{8,})');
-        const usernameRegexp: RegExp = new RegExp('/(?=.{4,})');
+        const passwordRegexp: RegExp = new RegExp('(?=.{8,})');
+        const usernameRegexp: RegExp = new RegExp('(?=.{4,})');
         let state: IState = context.state;
         switch (context.event.text) {
             case '/start':
@@ -48,7 +48,7 @@ export class TextManager {
                 break;
 
             case '/settings':
-                if (_.isNil(state.userData.userId)) {
+                if (_.isNil(state.user.id)) {
                     await context.sendMessage(Messages.DONT_KNOW_YOU);
                 } else {
                     await context.sendMessage('Ajustes', {
@@ -154,14 +154,14 @@ export class TextManager {
                 // const intentoDeToken = await dbx.getAccessTokenFromCode('', '');
                 // console.log(intentoDeToken);
 
-                if (context.state.user) {
-                    const user = await Utils.getUser(context.state.user.userId);
-                    console.log('user -> ' + user.username + ' code - > ' + user.dropboxCode);
-                    const token = await dbx.getToken(user.dropboxCode);
-                    console.log('TOKEN -> ' + token);
-                } else {
-                    console.log('no hay usuario');
-                }
+                // if (context.state.user) {
+                //     const user = await Utils.getUser(context.state.user.userId);
+                //     console.log('user -> ' + user.username + ' code - > ' + user.dropboxCode);
+                //     const token = await dbx.getToken(user.dropboxCode);
+                //     console.log('TOKEN -> ' + token);
+                // } else {
+                //     console.log('no hay usuario');
+                // }
 
                 break;
 
@@ -205,7 +205,7 @@ export class TextManager {
     public static async manageRegisterStatus(context: any, state: IState, dbx: DropboxUtils, usernameRegexp: RegExp, passwordRegexp: RegExp): Promise<void> {
         let next = true;
         if (state.currentStatus.insertingUsername && _.isNil(state.userData.username) && next) {
-            if (!usernameRegexp.test(context.event.payload)) {
+            if (!usernameRegexp.test(context.event.text)) {
                 await context.sendMessage(Messages.USERNAME_TOO_SHORT);
                 return Promise.resolve();
             }
@@ -220,7 +220,7 @@ export class TextManager {
             }
         }
         if (state.currentStatus.insertingPassword && _.isNil(state.userData.password) && next) {
-            if (!passwordRegexp.test(context.event.payload)) {
+            if (!passwordRegexp.test(context.event.text)) {
                 await context.sendMessage(Messages.PASSWORD_TOO_SHORT);
                 return Promise.resolve();
             }

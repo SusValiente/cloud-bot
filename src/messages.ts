@@ -2,7 +2,7 @@
 export enum Messages {
     ERROR = 'Algo ha ido mal, intentalo de nuevo porfavor',
     START = 'Bienvenido! Mi nombre es cloud bot y puedo ayudarte de muchas maneras, pero antes respondeme a una cosa, ¿Te conozco?',
-    START_KNOWN_USER = 'En ese caso dime tu nombre porfavor',
+    START_KNOWN_USER = 'Dime tu nombre de usuario',
     START_UNKNOWN_USER = 'Mi trabajo es ayudarte, puedo gestionar tus archivos de Dropbox o recordarte cosas para que no se te olviden, pero tengo que conocerte un poco antes, ¿Podrias decirme como quieres que te llame?',
     START_NAME_TAKEN = 'Ya conozco a un usuario con ese nombre, dime otro porfavor',
     START_ASK_PASSWORD = 'Necesito una contraseña que solo conozcamos tu y yo, para que asi pueda saber que eres tu realmente en un futuro, dime una contraseña porfavor',
@@ -21,6 +21,8 @@ export enum Messages {
     TASK_COMPLETED = 'Tarea completada',
     EMPTY_TASK_LIST = 'La lista no contiene ninguna tarea actuamente, ¿Quieres añadirle una?',
     REGISTERED_COMPLETE = 'Perfecto, te he registrado correctamente',
+    USERNAME_TOO_SHORT = 'Tu nombre de usuario debe contener al menos cuatro caracteres, prueba de nuevo',
+    PASSWORD_TOO_SHORT = 'Tu contraseña debe contener al menos ocho caracteres, prueba de nuevo',
 }
 
 export const HELP = `

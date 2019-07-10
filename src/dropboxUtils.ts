@@ -1,6 +1,7 @@
 import fetch from 'isomorphic-fetch';
 import { Dropbox } from 'dropbox';
 import { DropboxConfig } from './../dropbox.config';
+import { config } from './../bottender.config';
 
 export class DropboxUtils {
     private dbx: Dropbox;
@@ -21,5 +22,11 @@ export class DropboxUtils {
     async getToken(code: string): Promise<string> {
         const token: string = await this.dbx.getAccessTokenFromCode(DropboxConfig.redirectUri, code);
         return Promise.resolve(token);
+    }
+
+    async uploadFileByUrl(telegramFilePath: string): Promise<void> {
+        await this.dbx.filesSaveUrl({ path: telegramFilePath, url: `https://api.telegram.org/file/bot${config.telegram.accessToken}/${telegramFilePath}` });
+
+        return Promise.resolve();
     }
 }

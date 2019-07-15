@@ -75,9 +75,9 @@ async function main(dbx: DropboxUtils, client: any) {
     // intentare pasarle el userId por parametro con el parametro string que podia pasar con el metodo
     // junto con el redirect URL
     server.get('/auth', async (req: any, res: any) => {
-        if (!_.isNil(auxiliarContext) && !_.isNil(req.query.code)) {
+        if (!_.isNil(auxiliarContext.state.user) && !_.isNil(req.query.code)) {
             const userRepository = await getConnection().getRepository(User);
-            const user = await userRepository.findOne({ where: { userId: auxiliarContext.state.user.userId } });
+            const user = await userRepository.findOne({ where: { id: auxiliarContext.state.user.id } });
             user.dropboxCode = req.query.code;
             const token = await dbx.getToken(req.query.code);
             user.dropboxToken = token;

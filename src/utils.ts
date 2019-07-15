@@ -142,4 +142,27 @@ export class Utils {
             });
         return Promise.resolve(taskList);
     }
+
+    /**
+     * @method deleteDropboxToken deletes the token of the user from database
+     *
+     * @static
+     * @param {string} userId
+     * @returns {Promise<void>}
+     * @memberof Utils
+     */
+    public static async deleteDropboxToken(userId: string): Promise<void> {
+        const userRepository = await getConnection().getRepository(User);
+        const user = await userRepository.findOne({
+            where: {
+                id: userId,
+            },
+        });
+        if (user) {
+            user.dropboxCode = null;
+            user.dropboxToken = null;
+            await userRepository.save(user);
+        }
+        return Promise.resolve();
+    }
 }

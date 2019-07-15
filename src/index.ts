@@ -62,7 +62,7 @@ async function main(dbx: DropboxUtils, client: any) {
                 await TextManager.manageText(context, dbx);
             }
             if (context.event.isCallbackQuery) {
-                await CallbackManager.manageCallback(context);
+                await CallbackManager.manageCallback(context, dbx);
             }
         } catch (error) {
             await context.sendMessage(error.message);

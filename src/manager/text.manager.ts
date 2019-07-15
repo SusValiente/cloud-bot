@@ -21,6 +21,7 @@ export class TextManager {
         let state: IState = context.state;
         switch (context.event.text) {
             case '/start':
+                dbx.setToken(null);
                 context.setState(initialState);
                 state = initialState;
                 await context.sendMessage(Messages.START, {

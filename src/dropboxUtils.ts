@@ -82,4 +82,8 @@ export class DropboxUtils {
         const photos = await this.dbx.filesListFolder({ path: path, limit: limitEntries });
         return Promise.resolve(photos);
     }
+
+    unlinkDropboxAccount() {
+        this.dbx.authTokenRevoke();
+    }
 }

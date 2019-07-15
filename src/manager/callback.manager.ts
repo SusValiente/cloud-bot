@@ -6,6 +6,8 @@ import * as _ from 'lodash';
 import { getConnection } from 'typeorm';
 import { Task } from '../entities/task.entity';
 import { TaskList } from '../entities/taskList.entity';
+import { DropboxUtils } from '../dropboxUtils';
+import { IUser } from '../models/user.model';
 
 /**
  * Class Callback manager that manages all callback event received
@@ -14,7 +16,7 @@ import { TaskList } from '../entities/taskList.entity';
  * @class CallbackManager
  */
 export class CallbackManager {
-    public static async manageCallback(context: any): Promise<void> {
+    public static async manageCallback(context: any, dbx: DropboxUtils): Promise<void> {
         const state: IState = context.state;
 
         const viewRegex: RegExp = new RegExp('view/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/task-list');
@@ -118,6 +120,42 @@ export class CallbackManager {
                     }
                 }
                 break;
+
+            case 'dropbox_settings':
+                const authUrl = dbx.getAuthUrl();
+                await context.sendMessage('Ajustes cuenta de Dropbox', {
+                    reply_markup: {
+                        inline_keyboard: [
+                            [
+                                {
+                                    text: 'Vincular Dropbox',
+                                    url: authUrl,
+                                },
+                            ],
+                            [
+                                {
+                                    text: 'Desvincular Dropbox',
+                                    callback_data: 'unlink_dropbox',
+                                },
+                            ],
+                        ],
+                    },
+                });
+                break;
+
+            case 'unlink_dropbox':
+                const auxUser: IUser = {
+                    id: context.state.user.id,
+                    username: context.state.user.username,
+                    dropboxCode: null,
+                    dropboxToken: null,
+                };
+                context.setState({ user: auxUser });
+                await dbx.unlinkDropboxAccount();
+                await Utils.deleteDropboxToken(context.state.user.id);
+                await context.sendMessage('Dropbox desvinculado con exito');
+                break;
+
             default:
                 break;
         }

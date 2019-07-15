@@ -9,8 +9,8 @@ import { TaskList } from '../entities/taskList.entity';
 export class IUser {
     id: string;
     username: string;
-    password: string;
-    taskLists: TaskList[];
+    password?: string;
+    taskLists?: TaskList[];
     dropboxCode: string;
     dropboxToken: string;
 }

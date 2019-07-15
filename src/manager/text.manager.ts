@@ -6,6 +6,8 @@ import { getConnection } from 'typeorm';
 import { TaskList } from '../entities/taskList.entity';
 import { ITaskList } from '../models/taskList.model';
 import { Task } from '../entities/task.entity';
+import { DropboxUtils } from '../dropboxUtils';
+
 /**
  * Class Text manager that manages all text event received
  *
@@ -13,7 +15,9 @@ import { Task } from '../entities/task.entity';
  * @class TextManager
  */
 export class TextManager {
-    public static async manageText(context: any): Promise<void> {
+    public static async manageText(context: any, dbx: DropboxUtils): Promise<void> {
+        const passwordRegexp: RegExp = new RegExp('(?=.{8,})');
+        const usernameRegexp: RegExp = new RegExp('(?=.{4,})');
         let state: IState = context.state;
         switch (context.event.text) {
             case '/start':
@@ -44,7 +48,7 @@ export class TextManager {
                 break;
 
             case '/settings':
-                if (Utils.isNullOrUndefined(state.userData.userId)) {
+                if (_.isNil(state.user.id)) {
                     await context.sendMessage(Messages.DONT_KNOW_YOU);
                 } else {
                     await context.sendMessage('Ajustes', {
@@ -81,7 +85,7 @@ export class TextManager {
                 break;
 
             case '/task':
-                if (Utils.isNullOrUndefined(state.user)) {
+                if (_.isNil(state.user)) {
                     await context.sendMessage(Messages.DONT_KNOW_YOU);
                 } else {
                     await context.sendMessage('¿Que quieres hacer?', {
@@ -113,9 +117,7 @@ export class TextManager {
                             Tus datos:
                             Nombre de usuario: ${state.userData.username}
                             Contraseña: ${state.userData.password}
-                            Cuenta de dropbox: ${state.userData.dropboxEmail != null ? state.userData.dropboxEmail : 'Sin definir'}
-
-                            `
+                        `
                     );
                 } else {
                     await context.sendMessage(Messages.DONT_KNOW_YOU);
@@ -124,13 +126,25 @@ export class TextManager {
                 break;
 
             case '/testing':
-                const connection = await getConnection();
-                await context.sendMessage(connection);
+                if (!_.isNil(context.state.user) && !_.isNil(context.state.user.dropboxToken)) {
+                    try {
+                        dbx.setToken(context.state.user.dropboxToken);
+                        const files = await dbx.getFiles('/photos', 10);
+                        await context.sendMessage(files);
+                        console.log(files);
+                    } catch (error) {
+                        console.log(error);
+                        await context.sendMessage(error.message);
+                    }
+                } else {
+                    await context.sendMessage('No hay token');
+                }
+
                 break;
 
             default:
                 if (state.currentStatus.registering) {
-                    await this.manageRegisterStatus(context, state);
+                    await this.manageRegisterStatus(context, state, dbx, usernameRegexp, passwordRegexp);
                 }
                 if (state.currentStatus.logging) {
                     await this.manageLoginStatus(context, state);
@@ -140,7 +154,7 @@ export class TextManager {
                     await this.manageCreateTaskListStatus(context, state);
                 }
                 if (state.currentStatus.addingTask) {
-                    if (!Utils.isNullOrUndefined(state.taskList)) {
+                    if (!_.isNil(state.taskList)) {
                         delete state.taskList.tasks;
                         await this.manageAddingTaskStatus(state.taskList, context, state);
                     } else {
@@ -159,12 +173,19 @@ export class TextManager {
      * @static
      * @param {*} context
      * @param {IState} state
+     * @param {DropboxUtils} dbx
+     * @param {RegExp} usernameRegexp
+     * @param {RegExp} passwordRegexp
      * @returns {Promise<void>}
      * @memberof TextManager
      */
-    public static async manageRegisterStatus(context: any, state: IState): Promise<void> {
+    public static async manageRegisterStatus(context: any, state: IState, dbx: DropboxUtils, usernameRegexp: RegExp, passwordRegexp: RegExp): Promise<void> {
         let next = true;
-        if (state.currentStatus.insertingUsername && Utils.isNullOrUndefined(state.userData.username) && next) {
+        if (state.currentStatus.insertingUsername && _.isNil(state.userData.username) && next) {
+            if (!usernameRegexp.test(context.event.text)) {
+                await context.sendMessage(Messages.USERNAME_TOO_SHORT);
+                return Promise.resolve();
+            }
             if (!(await Utils.existsName(context.event.text))) {
                 state.userData.username = context.event.text;
                 await context.sendMessage(Messages.START_ASK_PASSWORD);
@@ -175,16 +196,25 @@ export class TextManager {
                 await context.sendMessage(Messages.START_NAME_TAKEN);
             }
         }
-        if (state.currentStatus.insertingPassword && Utils.isNullOrUndefined(state.userData.password) && next) {
+        if (state.currentStatus.insertingPassword && _.isNil(state.userData.password) && next) {
+            if (!passwordRegexp.test(context.event.text)) {
+                await context.sendMessage(Messages.PASSWORD_TOO_SHORT);
+                return Promise.resolve();
+            }
             state.userData.password = context.event.text;
             state.currentStatus.insertingPassword = false;
+
+            await Utils.registerUser(context, state.userData.username, context.event.text);
+
+            const authUrl = dbx.getAuthUrl();
+
             await context.sendMessage(Messages.START_ASK_DROPBOX, {
                 reply_markup: {
                     inline_keyboard: [
                         [
                             {
                                 text: 'Vincular Dropbox',
-                                callback_data: 'sync_dropbox',
+                                url: authUrl,
                             },
                         ],
                         [
@@ -198,23 +228,7 @@ export class TextManager {
             });
             next = false;
         }
-        if (state.currentStatus.insertingDropboxEmail && Utils.isNullOrUndefined(state.userData.dropboxEmail) && next) {
-            state.userData.dropboxEmail = context.event.text;
-            state.currentStatus.insertingDropboxEmail = false;
-            state.currentStatus.insertingDropboxPassword = true;
-            await context.sendMessage(Messages.START_ASK_DROPBOX_PASSWORD);
-            next = false;
-        }
 
-        if (state.currentStatus.insertingDropboxPassword && Utils.isNullOrUndefined(state.userData.dropboxPassword) && next) {
-            state.userData.dropboxPassword = context.event.text;
-            state.currentStatus.insertingDropboxPassword = false;
-
-            await Utils.registerUser(context, state.userData.username, state.userData.password, state.userData.dropboxEmail, state.userData.dropboxPassword);
-
-            await context.sendMessage(Messages.START_FINISHED);
-            next = false;
-        }
         return Promise.resolve();
     }
 
@@ -229,7 +243,7 @@ export class TextManager {
      */
     public static async manageLoginStatus(context: any, state: IState): Promise<void> {
         let next = true;
-        if (state.currentStatus.insertingUsername && Utils.isNullOrUndefined(state.userData.username) && next) {
+        if (state.currentStatus.insertingUsername && _.isNil(state.userData.username) && next) {
             if (await Utils.existsName(context.event.text)) {
                 state.userData.username = context.event.text;
                 await context.sendMessage(Messages.START_LOGIN_PASSWORD);
@@ -242,19 +256,11 @@ export class TextManager {
         }
         if (state.currentStatus.insertingPassword && next) {
             const userLogged = await Utils.loginUser(state.userData.username.toLocaleLowerCase(), context.event.text);
-            if (!Utils.isNullOrUndefined(userLogged)) {
+            if (!_.isNil(userLogged)) {
                 state.user = userLogged;
                 state.userData.userId = userLogged.id;
                 state.userData.username = userLogged.username;
                 state.userData.password = userLogged.password;
-                if (
-                    !Utils.isNullOrUndefined(userLogged.dropbox) &&
-                    !Utils.isNullOrUndefined(userLogged.dropbox.email) &&
-                    !Utils.isNullOrUndefined(userLogged.dropbox.password)
-                ) {
-                    state.userData.dropboxEmail = userLogged.dropbox.email;
-                    state.userData.dropboxPassword = userLogged.dropbox.password;
-                }
                 state.currentStatus.insertingPassword = false;
                 state.currentStatus.insertingUsername = false;
                 state.currentStatus.logging = false;
@@ -314,7 +320,7 @@ export class TextManager {
                 description: context.event.text,
                 taskList: stateTaskList,
             });
-        if (!Utils.isNullOrUndefined(newTask)) {
+        if (!_.isNil(newTask)) {
             await context.sendMessage('Tarea añadida correctamente a la lista: ' + state.taskList.name + ' ¿Quieres añadir otra más?', {
                 reply_markup: {
                     inline_keyboard: [

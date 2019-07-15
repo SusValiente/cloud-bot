@@ -1,4 +1,3 @@
-import { IDropbox } from './dropbox.model';
 import { TaskList } from '../entities/taskList.entity';
 
 /**
@@ -11,6 +10,7 @@ export class IUser {
     id: string;
     username: string;
     password: string;
-    dropbox: IDropbox;
     taskLists: TaskList[];
+    dropboxCode: string;
+    dropboxToken: string;
 }

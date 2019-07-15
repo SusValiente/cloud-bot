@@ -1,24 +1,19 @@
 import { IUser } from './models/user.model';
 import { ITaskList } from './models/taskList.model';
+import { Dropbox } from 'dropbox';
 
 export interface IState {
     userData: IData;
     currentStatus: IChatStatus;
-    taskListData: ITaskListData;
     user: IUser;
     taskList: ITaskList;
-}
-
-export interface ITaskListData {
-    taskListName: string;
+    dbx: Dropbox;
 }
 
 export interface IData {
     userId: string;
     username: string;
     password: string;
-    dropboxEmail?: string;
-    dropboxPassword?: string;
 }
 
 export interface IChatStatus {
@@ -40,8 +35,6 @@ export const initialState: IState = {
         userId: null,
         username: null,
         password: null,
-        dropboxEmail: null,
-        dropboxPassword: null,
     },
     currentStatus: {
         dropboxActive: null, // to know if the user has dropbox account
@@ -54,7 +47,5 @@ export const initialState: IState = {
         creatingTaskList: false,
         addingTask: false,
     },
-    taskListData: {
-        taskListName: null,
-    },
+    dbx: null,
 };

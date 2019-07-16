@@ -76,16 +76,16 @@ export class Utils {
      * @method getUser returns the user by id
      *
      * @static
-     * @param {string} id
+     * @param {string} userId
      * @returns {Promise<IUser>}
      * @memberof Utils
      */
-    public static async getUser(id: string): Promise<IUser> {
+    public static async getUser(userId: string): Promise<IUser> {
         const user = await getConnection()
             .getRepository(User)
             .findOne({
                 where: {
-                    userId: id,
+                    id: userId,
                 },
             });
 

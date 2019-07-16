@@ -52,6 +52,12 @@ async function main(dbx: DropboxUtils, client: any) {
     bot.onEvent(async (context: any) => {
         try {
             auxiliarContext = context;
+            if (context.state.user) {
+                console.log('CONTEXT USER : ' + context.state.user.id);
+                console.log('CONTEXT USER : ' + context.state.user.username);
+            } else {
+                console.log('USER NULL');
+            }
             if (context.event.isDocument) {
                 await DocumentManager.manageDocument(context);
             }

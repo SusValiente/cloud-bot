@@ -64,10 +64,14 @@ export class DropboxUtils {
      * @memberof DropboxUtils
      */
     async uploadFileByUrl(telegramFilePath: string): Promise<void> {
-        const downloadLink = `https://api.telegram.org/file/bot${config.telegram.accessToken}/${telegramFilePath}`;
-        await this.dbx.filesSaveUrl({ path: '/' + telegramFilePath, url: downloadLink });
-
-        return Promise.resolve();
+        try {
+            const downloadLink = `https://api.telegram.org/file/bot${config.telegram.accessToken}/${telegramFilePath}`;
+            await this.dbx.filesSaveUrl({ path: '/' + telegramFilePath, url: downloadLink });
+            return Promise.resolve();
+        } catch (error) {
+            console.log(error);
+            return Promise.reject(error);
+        }
     }
 
     /**

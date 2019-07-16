@@ -111,13 +111,13 @@ export class TextManager {
                 break;
 
             case '/me':
-                if (state.userData.username && state.userData.password) {
+                if (context.state.user) {
                     // TODO: show only two last characters of password
                     context.sendMessage(
                         `
                             Tus datos:
-                            Nombre de usuario: ${state.userData.username}
-                            Contraseña: ${state.userData.password}
+                            Nombre de usuario: ${state.user.username}
+                            Contraseña: ${state.user.password}
                         `
                     );
                 } else {

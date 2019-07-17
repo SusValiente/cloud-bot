@@ -15,7 +15,7 @@ export class DropboxUtils {
     constructor() {
         this.dbx = new Dropbox({
             fetch,
-            clientId: DropboxConfig.clientId,
+            clientId: DropboxConfig.clientId
         });
         this.dbx.setClientSecret(DropboxConfig.clientSecret);
     }

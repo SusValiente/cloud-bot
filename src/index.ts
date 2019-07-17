@@ -24,12 +24,12 @@ const options: ConnectionOptions = {
     database: './db/cloud-bot.db',
     entities: ['./dist/**/*.entity.js'],
     logging: true,
-    synchronize: true,
+    synchronize: true
 };
 
 // bot initialization
 const bot = new TelegramBot({
-    accessToken: config.telegram.accessToken,
+    accessToken: config.telegram.accessToken
 });
 
 bot.setInitialState(initialState);

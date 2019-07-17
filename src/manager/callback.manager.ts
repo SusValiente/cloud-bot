@@ -1,5 +1,5 @@
 import { Messages } from '../messages';
-import { IState } from '../states';
+import { IState, initialState } from '../states';
 import { Utils } from '../utils';
 import { ITaskList } from '../models/taskList.model';
 import * as _ from 'lodash';
@@ -17,7 +17,7 @@ import { IUser } from '../models/user.model';
  */
 export class CallbackManager {
     public static async manageCallback(context: any, dbx: DropboxUtils): Promise<void> {
-        const state: IState = context.state;
+        let state: IState = context.state;
 
         const viewRegex: RegExp = new RegExp('view/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/task-list');
         const completeTaskRegex: RegExp = new RegExp('complete/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/task');
@@ -53,7 +53,6 @@ export class CallbackManager {
             case 'ignore_dropbox':
                 state.currentStatus.dropboxActive = false;
                 state.currentStatus.registering = false;
-                await Utils.registerUser(context, state.userData.username, state.userData.password);
                 await context.sendMessage(Messages.START_FINISHED);
                 break;
 
@@ -85,17 +84,17 @@ export class CallbackManager {
                                 [
                                     {
                                         text: 'Si',
-                                        callback_data: 'create_task_list',
-                                    },
+                                        callback_data: 'create_task_list'
+                                    }
                                 ],
                                 [
                                     {
                                         text: 'No',
-                                        callback_data: 'dont_create_task_list',
-                                    },
-                                ],
-                            ],
-                        },
+                                        callback_data: 'dont_create_task_list'
+                                    }
+                                ]
+                            ]
+                        }
                     });
                 } else {
                     for (const list of taskLists) {
@@ -105,17 +104,17 @@ export class CallbackManager {
                                     [
                                         {
                                             text: 'Ver lista',
-                                            callback_data: 'view/' + list.id + '/task-list',
-                                        },
+                                            callback_data: 'view/' + list.id + '/task-list'
+                                        }
                                     ],
                                     [
                                         {
                                             text: 'Borrar lista',
-                                            callback_data: 'delete/' + list.id + '/task-list',
-                                        },
-                                    ],
-                                ],
-                            },
+                                            callback_data: 'delete/' + list.id + '/task-list'
+                                        }
+                                    ]
+                                ]
+                            }
                         });
                     }
                 }
@@ -129,17 +128,17 @@ export class CallbackManager {
                             [
                                 {
                                     text: 'Vincular Dropbox',
-                                    url: authUrl,
-                                },
+                                    url: authUrl
+                                }
                             ],
                             [
                                 {
                                     text: 'Desvincular Dropbox',
-                                    callback_data: 'unlink_dropbox',
-                                },
-                            ],
-                        ],
-                    },
+                                    callback_data: 'unlink_dropbox'
+                                }
+                            ]
+                        ]
+                    }
                 });
                 break;
 
@@ -147,15 +146,31 @@ export class CallbackManager {
                 const auxUser: IUser = {
                     id: context.state.user.id,
                     username: context.state.user.username,
+                    password: context.state.user.password,
                     dropboxCode: null,
-                    dropboxToken: null,
+                    dropboxToken: null
                 };
                 context.setState({ user: auxUser });
                 await dbx.unlinkDropboxAccount();
                 await Utils.deleteDropboxToken(context.state.user.id);
-                await context.sendMessage('Dropbox desvinculado con exito');
+                await context.sendMessage(Messages.UNLINKED_DROPBOX);
                 break;
 
+            case 'change_username':
+                await context.sendMessage(Messages.CHANGE_USERNAME);
+                state.currentStatus.changingUsername = true;
+                break;
+
+            case 'change_password':
+                await context.sendMessage(Messages.VALIDATE_CHANGE_PASSWORD);
+                state.currentStatus.validatingChangePassword = true;
+                break;
+            case 'logout':
+                dbx.setToken(null);
+                context.setState(initialState);
+                state = initialState;
+                await context.sendMessage(Messages.LOGOUT);
+                break;
             default:
                 break;
         }
@@ -186,11 +201,11 @@ export class CallbackManager {
                             [
                                 {
                                     text: 'Completar tarea',
-                                    callback_data: 'complete/' + task.id + '/task',
-                                },
-                            ],
-                        ],
-                    },
+                                    callback_data: 'complete/' + task.id + '/task'
+                                }
+                            ]
+                        ]
+                    }
                 });
             }
         } else {
@@ -200,17 +215,17 @@ export class CallbackManager {
                         [
                             {
                                 text: 'Si',
-                                callback_data: 'add_task',
-                            },
+                                callback_data: 'add_task'
+                            }
                         ],
                         [
                             {
                                 text: 'No',
-                                callback_data: 'dont_add_task',
-                            },
-                        ],
-                    ],
-                },
+                                callback_data: 'dont_add_task'
+                            }
+                        ]
+                    ]
+                }
             });
         }
 

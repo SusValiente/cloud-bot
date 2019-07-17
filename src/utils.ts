@@ -65,8 +65,8 @@ export class Utils {
             .findOne({
                 where: {
                     username: givenUsername,
-                    password: givenPassword,
-                },
+                    password: givenPassword
+                }
             });
 
         return Promise.resolve(user);
@@ -85,11 +85,60 @@ export class Utils {
             .getRepository(User)
             .findOne({
                 where: {
-                    id: userId,
-                },
+                    id: userId
+                }
             });
+        if (_.isNil(user)) {
+            return Promise.reject('User not found');
+        }
 
         return Promise.resolve(user);
+    }
+
+    /**
+     * @method changeUsername changes the username, if the username is already taken
+     * it will return false
+     *
+     * @static
+     * @param {string} userId
+     * @param {string} newUsername
+     * @returns {Promise<boolean>}
+     * @memberof Utils
+     */
+    public static async changeUsername(userId: string, newUsername: string): Promise<boolean> {
+        const userRepo = getConnection().getRepository(User);
+        const existantUser = await userRepo.findOne({ where: { username: newUsername } });
+        if (!_.isNil(existantUser)) {
+            return Promise.resolve(false);
+        }
+
+        const currentUser = await userRepo.findOne({ where: { id: userId } });
+        if (_.isNil(currentUser)) {
+            return Promise.reject('User not found');
+        }
+        currentUser.username = newUsername.toLocaleLowerCase();
+        await userRepo.save(currentUser);
+        return Promise.resolve(true);
+    }
+
+    /**
+     * @method changePassword changes the password of the user
+     *
+     * @static
+     * @param {string} userId
+     * @param {string} newPassword
+     * @returns {Promise<void>}
+     * @memberof Utils
+     */
+    public static async changePassword(userId: string, newPassword: string): Promise<void> {
+        const userRepo = getConnection().getRepository(User);
+        const currentUser = await userRepo.findOne({ where: { id: userId } });
+        if (_.isNil(currentUser)) {
+            return Promise.reject('User not found');
+        }
+        currentUser.password = newPassword;
+        await userRepo.save(currentUser);
+        return Promise.resolve();
     }
 
     /**
@@ -104,7 +153,7 @@ export class Utils {
         const taskLists: ITaskList[] = await getConnection()
             .getRepository(TaskList)
             .find({
-                where: { user: loggedUser },
+                where: { user: loggedUser }
             });
         return Promise.resolve(taskLists);
     }
@@ -121,7 +170,7 @@ export class Utils {
         const tasks: ITask[] = await getConnection()
             .getRepository(Task)
             .find({
-                where: { taskList: givenTaskList },
+                where: { taskList: givenTaskList }
             });
         return Promise.resolve(tasks);
     }
@@ -138,7 +187,7 @@ export class Utils {
         const taskList: ITaskList = await getConnection()
             .getRepository(TaskList)
             .findOne({
-                where: { id: taskListId },
+                where: { id: taskListId }
             });
         return Promise.resolve(taskList);
     }
@@ -155,8 +204,8 @@ export class Utils {
         const userRepository = await getConnection().getRepository(User);
         const user = await userRepository.findOne({
             where: {
-                id: userId,
-            },
+                id: userId
+            }
         });
         if (user) {
             user.dropboxCode = null;
@@ -164,5 +213,18 @@ export class Utils {
             await userRepository.save(user);
         }
         return Promise.resolve();
+    }
+
+    /**
+     * @method getHiddenPassword returns the password of the user in hidden format
+     *
+     * @static
+     * @param {string} password
+     * @returns {string}
+     * @memberof Utils
+     */
+    public static getHiddenPassword(password: string): string {
+        const hiddenPassword = password[0] + '******' + password[password.length - 1];
+        return hiddenPassword;
     }
 }

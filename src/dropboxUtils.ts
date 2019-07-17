@@ -15,7 +15,7 @@ export class DropboxUtils {
     constructor() {
         this.dbx = new Dropbox({
             fetch,
-            clientId: DropboxConfig.clientId,
+            clientId: DropboxConfig.clientId
         });
         this.dbx.setClientSecret(DropboxConfig.clientSecret);
     }
@@ -64,10 +64,14 @@ export class DropboxUtils {
      * @memberof DropboxUtils
      */
     async uploadFileByUrl(telegramFilePath: string): Promise<void> {
-        const downloadLink = `https://api.telegram.org/file/bot${config.telegram.accessToken}/${telegramFilePath}`;
-        await this.dbx.filesSaveUrl({ path: '/' + telegramFilePath, url: downloadLink });
-
-        return Promise.resolve();
+        try {
+            const downloadLink = `https://api.telegram.org/file/bot${config.telegram.accessToken}/${telegramFilePath}`;
+            await this.dbx.filesSaveUrl({ path: '/' + telegramFilePath, url: downloadLink });
+            return Promise.resolve();
+        } catch (error) {
+            console.log(error);
+            return Promise.reject(error);
+        }
     }
 
     /**
@@ -81,5 +85,9 @@ export class DropboxUtils {
     async getFiles(path: string, limitEntries: number): Promise<DropboxTypes.files.ListFolderResult> {
         const photos = await this.dbx.filesListFolder({ path: path, limit: limitEntries });
         return Promise.resolve(photos);
+    }
+
+    unlinkDropboxAccount() {
+        this.dbx.authTokenRevoke();
     }
 }

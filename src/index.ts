@@ -24,12 +24,12 @@ const options: ConnectionOptions = {
     database: './db/cloud-bot.db',
     entities: ['./dist/**/*.entity.js'],
     logging: true,
-    synchronize: true,
+    synchronize: true
 };
 
 // bot initialization
 const bot = new TelegramBot({
-    accessToken: config.telegram.accessToken,
+    accessToken: config.telegram.accessToken
 });
 
 bot.setInitialState(initialState);
@@ -52,6 +52,12 @@ async function main(dbx: DropboxUtils, client: any) {
     bot.onEvent(async (context: any) => {
         try {
             auxiliarContext = context;
+            if (context.state.user) {
+                console.log('CONTEXT USER : ' + context.state.user.id);
+                console.log('CONTEXT USER : ' + context.state.user.username);
+            } else {
+                console.log('USER NULL');
+            }
             if (context.event.isDocument) {
                 await DocumentManager.manageDocument(context);
             }
@@ -62,7 +68,7 @@ async function main(dbx: DropboxUtils, client: any) {
                 await TextManager.manageText(context, dbx);
             }
             if (context.event.isCallbackQuery) {
-                await CallbackManager.manageCallback(context);
+                await CallbackManager.manageCallback(context, dbx);
             }
         } catch (error) {
             await context.sendMessage(error.message);

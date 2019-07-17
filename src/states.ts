@@ -26,6 +26,9 @@ export interface IChatStatus {
     logging: boolean;
     creatingTaskList: boolean;
     addingTask: boolean;
+    changingUsername: boolean;
+    validatingChangePassword: boolean;
+    changingPassword: boolean;
 }
 
 export const initialState: IState = {
@@ -34,18 +37,21 @@ export const initialState: IState = {
     userData: {
         userId: null,
         username: null,
-        password: null,
+        password: null
     },
     currentStatus: {
-        dropboxActive: null, // to know if the user has dropbox account
-        insertingUsername: false, // to know if the user is inserting a username
-        insertingPassword: false, // to know if the user is inserting a password
-        insertingDropboxEmail: false, // to know if the user is inserting a dropbox email
-        insertingDropboxPassword: false, // to know if the user is inserting a dropbox password
+        dropboxActive: null,
+        insertingUsername: false,
+        insertingPassword: false,
+        insertingDropboxEmail: false,
+        insertingDropboxPassword: false,
         registering: false,
         logging: false,
         creatingTaskList: false,
         addingTask: false,
+        changingUsername: false,
+        changingPassword: false,
+        validatingChangePassword: false
     },
-    dbx: null,
+    dbx: null
 };

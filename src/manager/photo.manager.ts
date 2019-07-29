@@ -41,7 +41,12 @@ export class PhotoManager {
             await context.sendMessage(Messages.UNVALID_PHOTO);
         }
         try {
-            await dbx.uploadFileByUrl(photo.file_path);
+            if (_.isNil(context.event.message.caption)) {
+                await dbx.uploadFileByUrl(photo.file_path);
+            } else {
+                await dbx.uploadPhotoByUrl(photo.file_path, context.event.message.caption);
+            }
+
             await context.sendMessage(Messages.UPLOAD_PHOTO_SUCCESS);
         } catch (error) {
             console.log(error);

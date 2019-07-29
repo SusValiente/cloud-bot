@@ -74,6 +74,21 @@ export class DropboxUtils {
         }
     }
 
+    async uploadPhotoByUrl(telegramFilePath: string, fileName: string): Promise<void> {
+        try {
+            const extensionAux = telegramFilePath.split('.');
+            const extension = extensionAux[extensionAux.length - 1];
+            const path = 'photos/' + fileName + '.' + extension;
+
+            const downloadLink = `https://api.telegram.org/file/bot${config.telegram.accessToken}/${telegramFilePath}`;
+            await this.dbx.filesSaveUrl({ path: '/' + path, url: downloadLink });
+            return Promise.resolve();
+        } catch (error) {
+            console.log(error);
+            return Promise.reject(error);
+        }
+    }
+
     /**
      * @method getFiles returns the list of files of a folder
      *

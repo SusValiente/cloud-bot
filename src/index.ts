@@ -75,11 +75,8 @@ async function main(dbx: DropboxUtils, client: any) {
         }
     });
 
-    const server = createServer(bot);
+    const server = createServer(bot, { ngrok: true });
 
-    // me llega el userId del primer usuario registrado no se porque
-    // intentare pasarle el userId por parametro con el parametro string que podia pasar con el metodo
-    // junto con el redirect URL
     server.get('/auth', async (req: any, res: any) => {
         if (!_.isNil(auxiliarContext.state.user) && !_.isNil(req.query.code)) {
             const userRepository = await getConnection().getRepository(User);

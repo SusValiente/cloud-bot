@@ -20,6 +20,7 @@
     "bottender": "0.15.17",
     "dotenv": "^6.2.0",
     "dropbox": "^4.0.27",
+    "googleapis": "^41.0.1",
     "isomorphic-fetch": "^2.2.1",
     "lodash": "^4.17.11",
     "ngrok": "^3.2.3",

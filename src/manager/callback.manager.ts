@@ -147,8 +147,8 @@ export class CallbackManager {
                     id: context.state.user.id,
                     username: context.state.user.username,
                     password: context.state.user.password,
-                    dropboxCode: null,
-                    dropboxToken: null
+                    dropboxToken: null,
+                    googleRefreshToken: context.state.user.googleToken
                 };
                 context.setState({ user: auxUser });
                 await dbx.unlinkDropboxAccount();

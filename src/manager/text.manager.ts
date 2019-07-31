@@ -7,6 +7,9 @@ import { TaskList } from '../entities/taskList.entity';
 import { ITaskList } from '../models/taskList.model';
 import { Task } from '../entities/task.entity';
 import { DropboxUtils } from '../dropboxUtils';
+import { GoogleCredentials } from '../../credentials';
+
+const { google } = require('googleapis');
 
 /**
  * Class Text manager that manages all text event received
@@ -130,20 +133,43 @@ export class TextManager {
 
             case '/testing':
                 await context.sendMessage('QUE HACES TOCANDO ESTO !!?? D<');
-                if (!_.isNil(context.state.user) && !_.isNil(context.state.user.dropboxToken)) {
-                    try {
-                        dbx.setToken(context.state.user.dropboxToken);
-                        const files = await dbx.getFiles('/photos', 10);
-                        await context.sendMessage(files);
-                        console.log(files);
-                    } catch (error) {
-                        console.log(error);
-                        await context.sendMessage(error.message);
-                    }
-                } else {
-                    await context.sendMessage('No hay token');
-                }
 
+                try {
+                    const oauth2Client = new google.auth.OAuth2(
+                        GoogleCredentials.web.client_id,
+                        GoogleCredentials.web.client_secret,
+                        GoogleCredentials.web.redirect_uris[0]
+                    );
+
+                    google.options({ auth: oauth2Client });
+
+                    const scopes = ['https://www.googleapis.com/auth/plus.me'];
+                    const authorizeUrl = oauth2Client.generateAuthUrl({
+                        access_type: 'offline',
+                        scope: scopes.join(' '),
+                    });
+                    await context.sendMessage('Vincular google?', {
+                        reply_markup: {
+                            inline_keyboard: [
+                                [
+                                    {
+                                        text: 'Vincular google',
+                                        url: authorizeUrl
+                                    }
+                                ],
+                                [
+                                    {
+                                        text: 'No vincular',
+                                        callback_data: 'ignore_google'
+                                    }
+                                ]
+                            ]
+                        }
+                    });
+
+                } catch (error) {
+                    console.log(error);
+                }
                 break;
 
             default:

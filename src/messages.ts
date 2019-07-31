@@ -6,7 +6,7 @@ export enum Messages {
     START_NAME_TAKEN = 'Ya conozco a un usuario con ese nombre, dime otro porfavor',
     START_ASK_PASSWORD = 'Necesito una contraseña que solo conozcamos tu y yo, para que asi pueda saber que eres tu realmente en un futuro, dime una contraseña porfavor',
     START_LOGIN_PASSWORD = 'Ahora necesito que me digas tu contraseña para validar que eres quien dices ser',
-    START_ASK_DROPBOX = 'Mi principal funcionalidad requiere que me vincules con tu cuenta de Dropbox, ¿Estas deacuerdo?',
+    START_ASK_DROPBOX = 'Mi principal funcionalidad requiere que me vincules con tu cuenta de Dropbox, ¿Estas conforme?',
     START_FINISHED = 'Todo listo ! Para empezar a subir archivos a Dropbox mandamelos en cualquier momento y los subiré por ti. Si necesitas ayuda puedes usar el comando /help',
     START_UNKNOWN_NAME = 'No conozco a ningun usuario con ese nombre, prueba de nuevo',
     START_WRONG_PASSWORD = 'Contraseña incorrecta, prueba de nuevo',

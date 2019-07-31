@@ -14,11 +14,11 @@ export class User implements IUser {
     @Column({ type: 'varchar', length: 250, nullable: false })
     password: string;
 
-    @Column({ type: 'varchar', nullable: true, length: 9999 })
-    dropboxCode: string;
-
-    @Column({ type: 'varchar', nullable: true, length: 9999 })
+    @Column({ type: 'varchar', nullable: true })
     dropboxToken: string;
+
+    @Column({ type: 'varchar', nullable: true })
+    googleRefreshToken: string;
 
     @OneToMany(type => TaskList, list => list.user)
     taskLists: TaskList[];

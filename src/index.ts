@@ -11,10 +11,14 @@ import { Messages } from './messages';
 import { DropboxUtils } from './dropboxUtils';
 import { User } from './entities/user.entity';
 import { getConnection } from 'typeorm';
+import { GoogleCredentials } from '../credentials';
+import { GoogleToken } from './models/googleToken';
 
 //  JAVASCRIPT IMPORTS
 const { createServer } = require('bottender/express'); // does not have @types
 const { TelegramBot } = require('bottender');
+const { google } = require('googleapis');
+
 
 require('dotenv').config();
 
@@ -81,12 +85,33 @@ async function main(dbx: DropboxUtils, client: any) {
         if (!_.isNil(auxiliarContext.state.user) && !_.isNil(req.query.code)) {
             const userRepository = await getConnection().getRepository(User);
             const user = await userRepository.findOne({ where: { id: auxiliarContext.state.user.id } });
-            user.dropboxCode = req.query.code;
             const token = await dbx.getToken(req.query.code);
             user.dropboxToken = token;
             console.log(token);
             await userRepository.save(user);
             await auxiliarContext.sendMessage(Messages.START_FINISHED);
+        }
+        res.send(html);
+        res.end();
+    });
+
+    server.get('/google/auth', async (req: any, res: any) => {
+        if (!_.isNil(auxiliarContext.state.user) && !_.isNil(req.query.code)) {
+            const oAuth2Client = new google.auth.OAuth2(
+                GoogleCredentials.web.client_id,
+                GoogleCredentials.web.client_secret,
+                GoogleCredentials.web.redirect_uris[0]
+            );
+
+            google.options({ auth: oAuth2Client });
+            oAuth2Client.getToken(req.query.code, async (err: any, token: GoogleToken) => {
+                if (err) { return console.error('Error retrieving access token', err); }
+                const userRepository = await getConnection().getRepository(User);
+                const user = await userRepository.findOne({ where: { id: auxiliarContext.state.user.id } });
+                user.googleRefreshToken = token.access_token;
+                await userRepository.save(user);
+                await auxiliarContext.sendMessage(Messages.START_FINISHED);
+            });
         }
         res.send(html);
         res.end();

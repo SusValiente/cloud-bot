@@ -208,7 +208,6 @@ export class Utils {
             }
         });
         if (user) {
-            user.dropboxCode = null;
             user.dropboxToken = null;
             await userRepository.save(user);
         }

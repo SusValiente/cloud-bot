@@ -11,6 +11,6 @@ export class IUser {
     username: string;
     password?: string;
     taskLists?: TaskList[];
-    dropboxCode: string;
     dropboxToken: string;
+    googleRefreshToken: string;
 }

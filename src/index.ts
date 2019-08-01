@@ -19,7 +19,6 @@ const { createServer } = require('bottender/express'); // does not have @types
 const { TelegramBot } = require('bottender');
 const { google } = require('googleapis');
 
-
 require('dotenv').config();
 
 // typeorm config
@@ -87,9 +86,41 @@ async function main(dbx: DropboxUtils, client: any) {
             const user = await userRepository.findOne({ where: { id: auxiliarContext.state.user.id } });
             const token = await dbx.getToken(req.query.code);
             user.dropboxToken = token;
-            console.log(token);
             await userRepository.save(user);
-            await auxiliarContext.sendMessage(Messages.START_FINISHED);
+
+            const oauth2Client = new google.auth.OAuth2(
+                GoogleCredentials.web.client_id,
+                GoogleCredentials.web.client_secret,
+                GoogleCredentials.web.redirect_uris[0]
+            );
+
+            google.options({ auth: oauth2Client });
+
+            const scopes = ['https://www.googleapis.com/auth/plus.me'];
+            const authorizeUrl = oauth2Client.generateAuthUrl({
+                access_type: 'offline',
+                scope: scopes.join(' '),
+                prompt: 'consent'
+            });
+
+            await auxiliarContext.sendMessage(Messages.ASK_GOOGLE, {
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            {
+                                text: 'Vincular Google',
+                                url: authorizeUrl
+                            }
+                        ],
+                        [
+                            {
+                                text: 'No vincular',
+                                callback_data: 'ignore_google'
+                            }
+                        ]
+                    ]
+                }
+            });
         }
         res.send(html);
         res.end();
@@ -105,10 +136,13 @@ async function main(dbx: DropboxUtils, client: any) {
 
             google.options({ auth: oAuth2Client });
             oAuth2Client.getToken(req.query.code, async (err: any, token: GoogleToken) => {
-                if (err) { return console.error('Error retrieving access token', err); }
+                if (err) {
+                    return console.error('Error retrieving access token', err);
+                }
                 const userRepository = await getConnection().getRepository(User);
                 const user = await userRepository.findOne({ where: { id: auxiliarContext.state.user.id } });
-                user.googleRefreshToken = token.access_token;
+                user.googleRefreshToken = token.refresh_token;
+                user.googleToken = token.access_token;
                 await userRepository.save(user);
                 await auxiliarContext.sendMessage(Messages.START_FINISHED);
             });

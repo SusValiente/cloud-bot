@@ -146,7 +146,7 @@ export class TextManager {
                     const scopes = ['https://www.googleapis.com/auth/plus.me'];
                     const authorizeUrl = oauth2Client.generateAuthUrl({
                         access_type: 'offline',
-                        scope: scopes.join(' '),
+                        scope: scopes.join(' ')
                     });
                     await context.sendMessage('Vincular google?', {
                         reply_markup: {
@@ -166,7 +166,6 @@ export class TextManager {
                             ]
                         }
                     });
-
                 } catch (error) {
                     console.log(error);
                 }
@@ -266,6 +265,42 @@ export class TextManager {
                 }
             });
             next = false;
+        }
+        if (next) {
+            const oauth2Client = new google.auth.OAuth2(
+                GoogleCredentials.web.client_id,
+                GoogleCredentials.web.client_secret,
+                GoogleCredentials.web.redirect_uris[0]
+            );
+
+            google.options({ auth: oauth2Client });
+
+            const scopes = ['https://www.googleapis.com/auth/plus.me'];
+            const authorizeUrl = oauth2Client.generateAuthUrl({
+                access_type: 'offline',
+                scope: scopes.join(' ')
+            });
+
+            await context.sendMessage(Messages.ASK_GOOGLE, {
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            {
+                                text: 'Vincular Google',
+                                url: authorizeUrl
+                            }
+                        ],
+                        [
+                            {
+                                text: 'No vincular',
+                                callback_data: 'ignore_google'
+                            }
+                        ]
+                    ]
+                }
+            });
+            next = false;
+            state.currentStatus.registering = false;
         }
 
         return Promise.resolve();

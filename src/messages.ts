@@ -31,11 +31,14 @@ export enum Messages {
     CHANGE_USERNAME_SUCCESS = 'Hecho! De ahora en adelante te conoceré como ',
     CHANGE_PASSWORD_SUCCESS = 'Contraseña cambiada con éxito',
     VALIDATE_CHANGE_PASSWORD = 'Introduce primero tu actual contraseña',
-    LOGOUT = 'Hasta luego!'
+    LOGOUT = 'Hasta luego!',
+    ASK_GOOGLE = 'Soy capaz de recordarte cualquier cosa que me digas, pero para eso necesito que me vincules con tu cuenta de Google, ¿Estas conforme?'
 }
 
 export const START = `
     Hola ! Mi nombre es Cloud Bot, soy una inteligencia artificial programada para ayudarte a subir archivos a tu cuenta de Dropbox de una manera cómoda y sencilla.
+
+    Además, también puedo recordarte cualquier evento que me digas a través de Google Calendar.
 
 También puedo ayudarte a recordar tareas o cualquier cosa que quieras recordar y no perder en un futuro, para ello puedes crear listas de tareas utilizando el comando /task.
 
@@ -50,6 +53,8 @@ export const HELP = `
     Hola ! Mi nombre es Cloud Bot, soy una inteligencia artificial programada para ayudarte a subir archivos a tu cuenta de Dropbox de una manera cómoda y sencilla. Para ello, lo único que tienes que hacer es vincular una cuenta existente de Dropbox (si no lo has hecho ya) con el comando /settings, y a continuación pulsando en "Ajustes de Dropbox".
 
 Una vez tengas vinculada una cuenta podrás mandarme cualquier archivo que ya me encargaré yo de subirlos a tu cuenta.
+
+Además, tambien puedo añadir eventos a tu Google Calendar y recordartelos cuando llegue el momento, para ello necesito que tengas vinculada una cuenta de Google, para vincular una cuenta puedes utilizar el commando /settings.
 
 También puedo ayudarte a recordar tareas o cualquier cosa que quieras recordar y no perder en un futuro, para ello puedes crear listas de tareas utilizando el comando /task.
 

@@ -17,11 +17,10 @@ export interface IData {
 }
 
 export interface IChatStatus {
-    dropboxActive: boolean;
     insertingUsername: boolean;
     insertingPassword: boolean;
     insertingDropboxEmail: boolean;
-    insertingDropboxPassword: boolean;
+    insertingGoogleAccount: boolean;
     registering: boolean;
     logging: boolean;
     creatingTaskList: boolean;
@@ -40,11 +39,10 @@ export const initialState: IState = {
         password: null
     },
     currentStatus: {
-        dropboxActive: null,
         insertingUsername: false,
         insertingPassword: false,
         insertingDropboxEmail: false,
-        insertingDropboxPassword: false,
+        insertingGoogleAccount: false,
         registering: false,
         logging: false,
         creatingTaskList: false,

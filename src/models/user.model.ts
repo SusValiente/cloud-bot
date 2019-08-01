@@ -13,4 +13,5 @@ export class IUser {
     taskLists?: TaskList[];
     dropboxToken: string;
     googleRefreshToken: string;
+    googleToken: string;
 }

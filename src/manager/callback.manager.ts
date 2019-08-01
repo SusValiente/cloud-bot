@@ -8,6 +8,8 @@ import { Task } from '../entities/task.entity';
 import { TaskList } from '../entities/taskList.entity';
 import { DropboxUtils } from '../dropboxUtils';
 import { IUser } from '../models/user.model';
+import { GoogleCredentials } from '../../credentials';
+const { google } = require('googleapis');
 
 /**
  * Class Callback manager that manages all callback event received
@@ -51,7 +53,42 @@ export class CallbackManager {
                 state.currentStatus.logging = true;
                 break;
             case 'ignore_dropbox':
-                state.currentStatus.dropboxActive = false;
+                const oauth2Client = new google.auth.OAuth2(
+                    GoogleCredentials.web.client_id,
+                    GoogleCredentials.web.client_secret,
+                    GoogleCredentials.web.redirect_uris[0]
+                );
+
+                google.options({ auth: oauth2Client });
+
+                const scopes = ['https://www.googleapis.com/auth/plus.me'];
+                const authorizeUrl = oauth2Client.generateAuthUrl({
+                    access_type: 'offline',
+                    scope: scopes.join(' '),
+                    prompt: 'consent'
+                });
+
+                await context.sendMessage(Messages.ASK_GOOGLE, {
+                    reply_markup: {
+                        inline_keyboard: [
+                            [
+                                {
+                                    text: 'Vincular Google',
+                                    url: authorizeUrl
+                                }
+                            ],
+                            [
+                                {
+                                    text: 'No vincular',
+                                    callback_data: 'ignore_google'
+                                }
+                            ]
+                        ]
+                    }
+                });
+                break;
+
+            case 'ignore_google':
                 state.currentStatus.registering = false;
                 await context.sendMessage(Messages.START_FINISHED);
                 break;
@@ -148,7 +185,8 @@ export class CallbackManager {
                     username: context.state.user.username,
                     password: context.state.user.password,
                     dropboxToken: null,
-                    googleRefreshToken: context.state.user.googleToken
+                    googleRefreshToken: context.state.user.googleRefreshToken,
+                    googleToken: context.state.user.googleToken
                 };
                 context.setState({ user: auxUser });
                 await dbx.unlinkDropboxAccount();

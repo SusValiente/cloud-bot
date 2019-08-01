@@ -20,6 +20,9 @@ export class User implements IUser {
     @Column({ type: 'varchar', nullable: true })
     googleRefreshToken: string;
 
+    @Column({ type: 'varchar', nullable: true })
+    googleToken: string;
+
     @OneToMany(type => TaskList, list => list.user)
     taskLists: TaskList[];
 }

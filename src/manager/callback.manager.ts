@@ -61,7 +61,7 @@ export class CallbackManager {
 
                 google.options({ auth: oauth2Client });
 
-                const scopes = ['https://www.googleapis.com/auth/plus.me'];
+                const scopes = ['https://www.googleapis.com/auth/calendar'];
                 const authorizeUrl = oauth2Client.generateAuthUrl({
                     access_type: 'offline',
                     scope: scopes.join(' '),
@@ -184,9 +184,7 @@ export class CallbackManager {
                     id: context.state.user.id,
                     username: context.state.user.username,
                     password: context.state.user.password,
-                    dropboxToken: null,
-                    googleRefreshToken: context.state.user.googleRefreshToken,
-                    googleToken: context.state.user.googleToken
+                    dropboxToken: null
                 };
                 context.setState({ user: auxUser });
                 await dbx.unlinkDropboxAccount();

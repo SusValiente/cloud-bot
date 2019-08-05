@@ -8,6 +8,7 @@ import { ITaskList } from '../models/taskList.model';
 import { Task } from '../entities/task.entity';
 import { DropboxUtils } from '../dropboxUtils';
 import { GoogleCredentials } from '../../credentials';
+import { GoogleUtils } from '../googleUtils';
 
 const { google } = require('googleapis');
 
@@ -18,7 +19,7 @@ const { google } = require('googleapis');
  * @class TextManager
  */
 export class TextManager {
-    public static async manageText(context: any, dbx: DropboxUtils): Promise<void> {
+    public static async manageText(context: any, dbx: DropboxUtils, ggl: GoogleUtils): Promise<void> {
         const validateRegexp: RegExp = new RegExp('^(?=.{4,20}$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9]+(?<![_.])$');
         let state: IState = context.state;
         switch (context.event.text) {
@@ -135,37 +136,35 @@ export class TextManager {
                 await context.sendMessage('QUE HACES TOCANDO ESTO !!?? D<');
 
                 try {
-                    const oauth2Client = new google.auth.OAuth2(
-                        GoogleCredentials.web.client_id,
-                        GoogleCredentials.web.client_secret,
-                        GoogleCredentials.web.redirect_uris[0]
-                    );
-
-                    google.options({ auth: oauth2Client });
-
-                    const scopes = ['https://www.googleapis.com/auth/plus.me'];
-                    const authorizeUrl = oauth2Client.generateAuthUrl({
-                        access_type: 'offline',
-                        scope: scopes.join(' ')
-                    });
-                    await context.sendMessage('Vincular google?', {
-                        reply_markup: {
-                            inline_keyboard: [
-                                [
-                                    {
-                                        text: 'Vincular google',
-                                        url: authorizeUrl
-                                    }
-                                ],
-                                [
-                                    {
-                                        text: 'No vincular',
-                                        callback_data: 'ignore_google'
-                                    }
-                                ]
-                            ]
-                        }
-                    });
+                    if (state.user) {
+                        // TODO: fix this when the user disconnects
+                        const credentials = await ggl.refreshAndGetCredentials(state.user.id);
+                        const calendar = google.calendar({ version: 'v3', credentials });
+                        calendar.events.list(
+                            {
+                                calendarId: 'primary',
+                                timeMin: new Date().toISOString(),
+                                maxResults: 10,
+                                singleEvents: true,
+                                orderBy: 'startTime'
+                            },
+                            (err: any, res: any) => {
+                                if (err) {
+                                    return console.log('The API returned an error: ' + err);
+                                }
+                                const events = res.data.items;
+                                if (events.length) {
+                                    console.log('Upcoming 10 events:');
+                                    events.map((event: any, i: any) => {
+                                        const start = event.start.dateTime || event.start.date;
+                                        console.log(`${start} - ${event.summary}`);
+                                    });
+                                } else {
+                                    console.log('No upcoming events found.');
+                                }
+                            }
+                        );
+                    }
                 } catch (error) {
                     console.log(error);
                 }
@@ -275,7 +274,7 @@ export class TextManager {
 
             google.options({ auth: oauth2Client });
 
-            const scopes = ['https://www.googleapis.com/auth/plus.me'];
+            const scopes = ['https://www.googleapis.com/auth/calendar'];
             const authorizeUrl = oauth2Client.generateAuthUrl({
                 access_type: 'offline',
                 scope: scopes.join(' ')

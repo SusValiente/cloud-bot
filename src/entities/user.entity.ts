@@ -1,6 +1,7 @@
 import { Entity, Unique, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, JoinColumn } from 'typeorm';
 import { IUser } from '../models/user.model';
 import { TaskList } from './taskList.entity';
+import { GoogleCredential } from './googleCredential.entity';
 
 @Entity()
 @Unique(['username'])
@@ -17,12 +18,10 @@ export class User implements IUser {
     @Column({ type: 'varchar', nullable: true })
     dropboxToken: string;
 
-    @Column({ type: 'varchar', nullable: true })
-    googleRefreshToken: string;
-
-    @Column({ type: 'varchar', nullable: true })
-    googleToken: string;
-
     @OneToMany(type => TaskList, list => list.user)
     taskLists: TaskList[];
+
+    @OneToOne(type => GoogleCredential, credential => credential.user)
+    @JoinColumn()
+    googleCredential: GoogleCredential;
 }

@@ -1,4 +1,5 @@
 import { TaskList } from '../entities/taskList.entity';
+import { IGoogleCredential } from './googleToken.model';
 
 /**
  * User class
@@ -12,6 +13,5 @@ export class IUser {
     password?: string;
     taskLists?: TaskList[];
     dropboxToken: string;
-    googleRefreshToken: string;
-    googleToken: string;
+    googleCredential?: IGoogleCredential;
 }

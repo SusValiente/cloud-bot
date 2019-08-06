@@ -9,6 +9,7 @@ import { Task } from '../entities/task.entity';
 import { DropboxUtils } from '../dropboxUtils';
 import { GoogleCredentials } from '../../credentials';
 import { GoogleUtils } from '../googleUtils';
+import Moment from 'moment';
 
 const { google } = require('googleapis');
 
@@ -132,39 +133,27 @@ export class TextManager {
 
                 break;
 
+            case '/calendar':
+                if (state.user) {
+                    // const user = await Utils.getUser(state.user.id);
+                    // const isExpired = await ggl.isTokenExpired(user.googleCredential.access_token);
+
+                    // if (isExpired) {
+                    //     const newToken = await ggl.getNewAccessToken(user.googleCredential.refresh_token);
+                    //     await Utils.updateAccessToken(user.googleCredential.id, newToken);
+                    // }
+
+                    const currentDate = Moment.utc(Moment.now()).format();
+                    console.log(currentDate);
+                } else {
+                    await context.sendMessage(Messages.DONT_KNOW_YOU);
+                }
+                break;
+
             case '/testing':
                 await context.sendMessage('QUE HACES TOCANDO ESTO !!?? D<');
 
                 try {
-                    if (state.user) {
-                        // TODO: fix this when the user disconnects
-                        const credentials = await ggl.refreshAndGetCredentials(state.user.id);
-                        const calendar = google.calendar({ version: 'v3', credentials });
-                        calendar.events.list(
-                            {
-                                calendarId: 'primary',
-                                timeMin: new Date().toISOString(),
-                                maxResults: 10,
-                                singleEvents: true,
-                                orderBy: 'startTime'
-                            },
-                            (err: any, res: any) => {
-                                if (err) {
-                                    return console.log('The API returned an error: ' + err);
-                                }
-                                const events = res.data.items;
-                                if (events.length) {
-                                    console.log('Upcoming 10 events:');
-                                    events.map((event: any, i: any) => {
-                                        const start = event.start.dateTime || event.start.date;
-                                        console.log(`${start} - ${event.summary}`);
-                                    });
-                                } else {
-                                    console.log('No upcoming events found.');
-                                }
-                            }
-                        );
-                    }
                 } catch (error) {
                     console.log(error);
                 }

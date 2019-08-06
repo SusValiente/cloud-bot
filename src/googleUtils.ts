@@ -1,6 +1,7 @@
 import { GoogleCredentials } from '../credentials';
 import { getConnection } from 'typeorm';
 import { User } from './entities/user.entity';
+import axios from 'axios';
 const { google } = require('googleapis');
 
 export class GoogleUtils {
@@ -55,7 +56,18 @@ export class GoogleUtils {
         return this.oAuth2Client;
     }
 
-    // public refreshToken(refreshToken): string {
-    // mirar archivo google auth library de node modules oauth2client.js
-    // }
+    public async isTokenExpired(token: string): Promise<boolean> {
+        const uri = `https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${token}`;
+        try {
+            await axios.get(uri);
+            return false;
+        } catch (error) {
+            return true;
+        }
+    }
+
+    public async getNewAccessToken(refreshToken: string): Promise<string> {
+        const newtoken = await this.oAuth2Client.refreshToken(refreshToken);
+        return newtoken.res.data.access_token;
+    }
 }

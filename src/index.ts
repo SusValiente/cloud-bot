@@ -81,7 +81,7 @@ async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any) {
         }
     });
 
-    const server = createServer(bot, { ngrok: true });
+    const server = createServer(bot);
 
     server.get('/auth', async (req: any, res: any) => {
         if (!_.isNil(auxiliarContext.state.user) && !_.isNil(req.query.code)) {
@@ -141,7 +141,8 @@ async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any) {
                     id_token: token.id_token,
                     expiry_date: token.expiry_date
                 };
-
+                findUser.tokenJSON = JSON.stringify(token);
+                await userRepository.save(findUser);
                 await googleRepository.save(newCredential);
                 await auxiliarContext.sendMessage(Messages.START_FINISHED);
             });

@@ -9,6 +9,8 @@ import { TaskList } from '../entities/taskList.entity';
 import { DropboxUtils } from '../dropboxUtils';
 import { IUser } from '../models/user.model';
 import { GoogleCredentials } from '../../credentials';
+import { GoogleUtils } from '../googleUtils';
+
 const { google } = require('googleapis');
 
 /**
@@ -18,7 +20,7 @@ const { google } = require('googleapis');
  * @class CallbackManager
  */
 export class CallbackManager {
-    public static async manageCallback(context: any, dbx: DropboxUtils): Promise<void> {
+    public static async manageCallback(context: any, dbx: DropboxUtils, ggl: GoogleUtils): Promise<void> {
         let state: IState = context.state;
 
         const viewRegex: RegExp = new RegExp('view/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/task-list');
@@ -206,6 +208,16 @@ export class CallbackManager {
                 context.setState(initialState);
                 state = initialState;
                 await context.sendMessage(Messages.LOGOUT);
+                break;
+            case 'see_events':
+                const nextEvents: string[] = await ggl.getEvents(state.user.googleCredential.access_token, state.user.googleEmail, 10);
+                if (_.isNil(nextEvents)) {
+                    await context.sendMessage('Parece que no hay eventos disponibles');
+                    return Promise.resolve();
+                }
+                for (const event of nextEvents) {
+                    await context.sendMessage(event);
+                }
                 break;
             default:
                 break;

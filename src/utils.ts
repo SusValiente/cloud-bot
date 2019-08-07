@@ -68,7 +68,8 @@ export class Utils {
                 where: {
                     username: givenUsername,
                     password: givenPassword
-                }
+                },
+                relations: ['googleCredential']
             });
 
         return Promise.resolve(user);

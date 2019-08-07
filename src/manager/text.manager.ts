@@ -135,16 +135,33 @@ export class TextManager {
 
             case '/calendar':
                 if (state.user) {
-                    // const user = await Utils.getUser(state.user.id);
-                    // const isExpired = await ggl.isTokenExpired(user.googleCredential.access_token);
-
-                    // if (isExpired) {
-                    //     const newToken = await ggl.getNewAccessToken(user.googleCredential.refresh_token);
-                    //     await Utils.updateAccessToken(user.googleCredential.id, newToken);
-                    // }
-
-                    const currentDate = Moment.utc(Moment.now()).format();
-                    console.log(currentDate);
+                    const user = await Utils.getUser(state.user.id);
+                    if (_.isNil(user.googleEmail) || _.isNil(user.googleCredential)) {
+                        await context.sendMessage(Messages.NO_GOOGLE);
+                        return Promise.resolve();
+                    }
+                    state.user = user;
+                    const isExpired = await ggl.isTokenExpired(user.googleCredential.access_token);
+                    if (isExpired) {
+                        const newToken = await ggl.getNewAccessToken(user.googleCredential.refresh_token);
+                        await Utils.updateAccessToken(user.googleCredential.id, newToken);
+                        state.user.googleCredential.access_token = newToken;
+                    }
+                    await context.sendMessage(Messages.CALENDAR, {
+                        reply_markup: {
+                            inline_keyboard: [
+                                [
+                                    {
+                                        text: 'Ver próximos eventos',
+                                        callback_data: 'see_events'
+                                    }
+                                ]
+                            ]
+                        }
+                    });
+                    // para recuperar proximos eventos
+                    // const nextEvents = await ggl.getEvents(state.user.googleCredential.access_token, state.user.googleEmail, 10);
+                    // console.log(nextEvents);
                 } else {
                     await context.sendMessage(Messages.DONT_KNOW_YOU);
                 }

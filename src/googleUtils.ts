@@ -2,7 +2,9 @@ import { GoogleCredentials } from '../credentials';
 import { getConnection } from 'typeorm';
 import { User } from './entities/user.entity';
 import axios from 'axios';
+import * as _ from 'lodash';
 const { google } = require('googleapis');
+import Moment from 'moment';
 
 export class GoogleUtils {
     private oAuth2Client: any;
@@ -36,10 +38,6 @@ export class GoogleUtils {
         this.oAuth2Client = credentials;
     }
 
-    public getEvents(): any {
-        // this.oAuth2Client.setCredentials(token);
-    }
-
     public async refreshAndGetCredentials(userId: string): Promise<any> {
         const user = await getConnection()
             .getRepository(User)
@@ -69,5 +67,46 @@ export class GoogleUtils {
     public async getNewAccessToken(refreshToken: string): Promise<string> {
         const newtoken = await this.oAuth2Client.refreshToken(refreshToken);
         return newtoken.res.data.access_token;
+    }
+
+    public async getEvents(accessToken: string, calendarId: string, take: number): Promise<string[]> {
+        const now = Moment.utc(Moment.now()).format();
+        const uri = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?timeMin=${now}&maxResults=${take}`;
+        const config = {
+            headers: {
+                Authorization: 'Bearer ' + accessToken
+            }
+        };
+        const events: string[] = [];
+        try {
+            const userEvents: any = await axios.get(uri, config);
+            if (_.isEmpty(userEvents.data.items)) {
+                return null;
+            }
+            userEvents.data.items.forEach((element: any) => {
+                events.push(element.summary);
+            });
+            return events;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    public async getCalendarId(accessToken: string): Promise<string> {
+        const uri = `https://www.googleapis.com/calendar/v3/users/me/calendarList`;
+        const config = {
+            headers: { Authorization: 'Bearer ' + accessToken }
+        };
+        try {
+            const userCalendars: any = await axios.get(uri, config);
+            if (_.isEmpty(userCalendars.data.items)) {
+                return null;
+            }
+            const calendarId = userCalendars.data.items[0].summary;
+
+            return calendarId;
+        } catch (error) {
+            return null;
+        }
     }
 }

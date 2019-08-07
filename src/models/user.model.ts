@@ -11,8 +11,8 @@ export class IUser {
     id: string;
     username: string;
     password?: string;
+    googleEmail?: string;
     taskLists?: TaskList[];
     dropboxToken: string;
     googleCredential?: IGoogleCredential;
-    tokenJSON?: string;
 }

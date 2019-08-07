@@ -11,7 +11,8 @@ export enum Messages {
     START_UNKNOWN_NAME = 'No conozco a ningun usuario con ese nombre, prueba de nuevo',
     START_WRONG_PASSWORD = 'Contraseña incorrecta, prueba de nuevo',
     DONT_KNOW_YOU = 'Me temo que no se quien eres, utiliza /start para que pueda recordarte',
-    NO_DROPBOX = 'Para trabajar con archivos necesito antes que me des acceso a tu cuenta de Dropbox',
+    NO_DROPBOX = 'Para trabajar con archivos necesito antes que me des acceso a tu cuenta de Dropbox, para hacerlo entra a tus ajustes desde /settings',
+    NO_GOOGLE = 'Antes de eso necesito que me des acceso a tu cuenta de Google para asi poder gestionar tu Calendario, para hacerlo entra a tus ajustes desde /settings',
     TASK_LIST_NAME = '¿Como se va a llamar esa lista de tareas?',
     TASK_LIST_DONE = 'Hecho',
     ADD_TASK = '¿En qué consiste la tarea?',
@@ -32,7 +33,8 @@ export enum Messages {
     CHANGE_PASSWORD_SUCCESS = 'Contraseña cambiada con éxito',
     VALIDATE_CHANGE_PASSWORD = 'Introduce primero tu actual contraseña',
     LOGOUT = 'Hasta luego!',
-    ASK_GOOGLE = 'Soy capaz de recordarte cualquier cosa que me digas, pero para eso necesito que me vincules con tu cuenta de Google, ¿Estas conforme?'
+    ASK_GOOGLE = 'Soy capaz de recordarte cualquier cosa que me digas, pero para eso necesito que me vincules con tu cuenta de Google, ¿Estas conforme?',
+    CALENDAR = 'Desde aqui puedes gestionar tus proximos eventos de tu Calendario personal, ¿Que quieres hacer?'
 }
 
 export const START = `

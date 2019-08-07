@@ -74,7 +74,7 @@ async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any) {
                 await TextManager.manageText(context, dbx, ggl);
             }
             if (context.event.isCallbackQuery) {
-                await CallbackManager.manageCallback(context, dbx);
+                await CallbackManager.manageCallback(context, dbx, ggl);
             }
         } catch (error) {
             await context.sendMessage(error.message);
@@ -141,7 +141,7 @@ async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any) {
                     id_token: token.id_token,
                     expiry_date: token.expiry_date
                 };
-                findUser.tokenJSON = JSON.stringify(token);
+                findUser.googleEmail = await ggl.getCalendarId(token.access_token);
                 await userRepository.save(findUser);
                 await googleRepository.save(newCredential);
                 await auxiliarContext.sendMessage(Messages.START_FINISHED);

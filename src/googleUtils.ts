@@ -6,6 +6,13 @@ import * as _ from 'lodash';
 const { google } = require('googleapis');
 import Moment from 'moment';
 
+export interface IGoogleEvent {
+    id: string,
+    summary: string,
+    endDate: string,
+    location: string
+}
+
 export class GoogleUtils {
     private oAuth2Client: any;
 
@@ -69,22 +76,30 @@ export class GoogleUtils {
         return newtoken.res.data.access_token;
     }
 
-    public async getEvents(accessToken: string, calendarId: string, take: number): Promise<string[]> {
+    public async getEvents(accessToken: string, calendarId: string, take: number): Promise<IGoogleEvent[]> {
         const now = Moment.utc(Moment.now()).format();
-        const uri = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?timeMin=${now}&maxResults=${take}`;
+        const uri = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?timeMin=${now}&maxResults=${take}&orderBy=starttime&singleEvents=true`;
         const config = {
             headers: {
                 Authorization: 'Bearer ' + accessToken
             }
         };
-        const events: string[] = [];
+        const events: IGoogleEvent[] = [];
         try {
             const userEvents: any = await axios.get(uri, config);
             if (_.isEmpty(userEvents.data.items)) {
                 return null;
             }
             userEvents.data.items.forEach((element: any) => {
-                events.push(element.summary);
+                events.push({
+                    id: element.id,
+                    summary: element.summary,
+                    endDate:
+                        !_.isNil(element.end.date) ? Moment.utc(element.end.date).locale('es').format('dddd, MMMM Do YYYY, h:mm:ss a') :
+                            !_.isNil(element.end.dateTime) ? Moment.utc(element.end.dateTime).locale('es').format('dddd, MMMM Do YYYY, h:mm:ss a') :
+                                'No definido',
+                    location: _.isNil(element.location) ? 'No definido' : element.location
+                });
             });
             return events;
         } catch (error) {
@@ -107,6 +122,19 @@ export class GoogleUtils {
             return calendarId;
         } catch (error) {
             return null;
+        }
+    }
+
+    public async deleteEvent(eventId: string, calendarId: string, accessToken: string): Promise<void> {
+        const uri = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events/${eventId}`;
+        const config = {
+            headers: { Authorization: 'Bearer ' + accessToken }
+        };
+        try {
+            await axios.delete(uri, config);
+            return;
+        } catch (error) {
+            console.log(error.message);
         }
     }
 }

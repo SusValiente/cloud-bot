@@ -9,7 +9,7 @@ import { TaskList } from '../entities/taskList.entity';
 import { DropboxUtils } from '../dropboxUtils';
 import { IUser } from '../models/user.model';
 import { GoogleCredentials } from '../../credentials';
-import { GoogleUtils } from '../googleUtils';
+import { GoogleUtils, IGoogleEvent } from '../googleUtils';
 
 const { google } = require('googleapis');
 
@@ -26,6 +26,7 @@ export class CallbackManager {
         const viewRegex: RegExp = new RegExp('view/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/task-list');
         const completeTaskRegex: RegExp = new RegExp('complete/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/task');
         const deleteTaskListRegex: RegExp = new RegExp('delete/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/task-list');
+        const deleteEvent: RegExp = new RegExp('d/.*/e');
 
         // view task list
         if (viewRegex.test(context.event.payload)) {
@@ -41,6 +42,15 @@ export class CallbackManager {
         // delete task
         if (deleteTaskListRegex.test(context.event.payload)) {
             await this.deleteTaskList(context.event.payload, context);
+            return Promise.resolve();
+        }
+
+        // delete event
+        if (deleteEvent.test(context.event.payload)) {
+            const eventId: string = context.event.payload.split('/')[1];
+            await ggl.deleteEvent(eventId, context.state.user.googleEmail, context.state.user.googleCredential.access_token);
+            await context.sendMessage('Evento eliminado correctamente');
+            return Promise.resolve();
         }
 
         switch (context.event.payload) {
@@ -144,9 +154,7 @@ export class CallbackManager {
                                         {
                                             text: 'Ver lista',
                                             callback_data: 'view/' + list.id + '/task-list'
-                                        }
-                                    ],
-                                    [
+                                        },
                                         {
                                             text: 'Borrar lista',
                                             callback_data: 'delete/' + list.id + '/task-list'
@@ -210,13 +218,24 @@ export class CallbackManager {
                 await context.sendMessage(Messages.LOGOUT);
                 break;
             case 'see_events':
-                const nextEvents: string[] = await ggl.getEvents(state.user.googleCredential.access_token, state.user.googleEmail, 10);
+                const nextEvents: IGoogleEvent[] = await ggl.getEvents(state.user.googleCredential.access_token, state.user.googleEmail, 10);
                 if (_.isNil(nextEvents)) {
                     await context.sendMessage('Parece que no hay eventos disponibles');
                     return Promise.resolve();
                 }
                 for (const event of nextEvents) {
-                    await context.sendMessage(event);
+                    await context.sendMessage(`Evento: ${event.summary}\nFecha:  ${event.endDate}\nLugar:  ${event.location}`, {
+                        reply_markup: {
+                            inline_keyboard: [
+                                [
+                                    {
+                                        text: 'Eliminar evento',
+                                        callback_data: `d/${event.id}/e`
+                                    }
+                                ]
+                            ]
+                        }
+                    });
                 }
                 break;
             default:

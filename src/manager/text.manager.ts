@@ -154,14 +154,15 @@ export class TextManager {
                                     {
                                         text: 'Ver próximos eventos',
                                         callback_data: 'see_events'
+                                    },
+                                    {
+                                        text: 'Crear evento',
+                                        callback_data: 'create_event'
                                     }
                                 ]
                             ]
                         }
                     });
-                    // para recuperar proximos eventos
-                    // const nextEvents = await ggl.getEvents(state.user.googleCredential.access_token, state.user.googleEmail, 10);
-                    // console.log(nextEvents);
                 } else {
                     await context.sendMessage(Messages.DONT_KNOW_YOU);
                 }

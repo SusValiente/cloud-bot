@@ -9,8 +9,6 @@ import { Task } from '../entities/task.entity';
 import { DropboxUtils } from '../dropboxUtils';
 import { GoogleCredentials } from '../../credentials';
 import { GoogleUtils } from '../googleUtils';
-import Moment from 'moment';
-
 const { google } = require('googleapis');
 
 /**
@@ -20,7 +18,7 @@ const { google } = require('googleapis');
  * @class TextManager
  */
 export class TextManager {
-    public static async manageText(context: any, dbx: DropboxUtils, ggl: GoogleUtils): Promise<void> {
+    public static async manageText(context: any, dbx: DropboxUtils, ggl: GoogleUtils, calendar: any): Promise<void> {
         const validateRegexp: RegExp = new RegExp('^(?=.{4,20}$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9]+(?<![_.])$');
         let state: IState = context.state;
         switch (context.event.text) {
@@ -205,9 +203,36 @@ export class TextManager {
                         await context.sendMessage(Messages.TASK_LIST_UNDEFINED);
                     }
                 }
+                if (state.currentStatus.insertingEventDate) {
+                    await this.manageInsertingDate(context, calendar);
+                }
 
                 break;
         }
+        return Promise.resolve();
+    }
+
+    /**
+     * @method manageRegisterStatus manages messages when the status is inserting a date
+     *
+     * @static
+     * @param {*} context
+     * @param {*} calendar
+     * @returns {Promise<void>}
+     * @memberof TextManager
+     */
+    public static async manageInsertingDate(context: any, calendar: any): Promise<void> {
+        context.setState({
+            event: { summary: context.event.text },
+            currentStatus: { insertingEventDate: false }
+        });
+        const today = new Date();
+        const minDate = new Date();
+        minDate.setMonth(today.getMonth() - 12);
+        const maxDate = new Date();
+        maxDate.setMonth(today.getMonth() + 12);
+        maxDate.setDate(today.getDate());
+        context.sendMessage('Selecciona la fecha del evento: ', calendar.setMinDate(minDate).setMaxDate(maxDate).getCalendar());
         return Promise.resolve();
     }
 

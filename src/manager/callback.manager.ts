@@ -10,6 +10,7 @@ import { DropboxUtils } from '../dropboxUtils';
 import { IUser } from '../models/user.model';
 import { GoogleCredentials } from '../../credentials';
 import { GoogleUtils, IGoogleEvent } from '../googleUtils';
+import { dayHours } from './../models/time.model';
 
 const { google } = require('googleapis');
 
@@ -20,13 +21,18 @@ const { google } = require('googleapis');
  * @class CallbackManager
  */
 export class CallbackManager {
-    public static async manageCallback(context: any, dbx: DropboxUtils, ggl: GoogleUtils): Promise<void> {
+    public static async manageCallback(context: any, dbx: DropboxUtils, ggl: GoogleUtils, calendar: any): Promise<void> {
         let state: IState = context.state;
 
         const viewRegex: RegExp = new RegExp('view/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/task-list');
         const completeTaskRegex: RegExp = new RegExp('complete/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/task');
         const deleteTaskListRegex: RegExp = new RegExp('delete/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/task-list');
-        const deleteEvent: RegExp = new RegExp('d/.*/e');
+        const deleteEventRegex: RegExp = new RegExp('d/.*/e');
+        const dateRegexp: RegExp = new RegExp('calendar-telegram-date-.*');
+        const alsoDateRegexp: RegExp = new RegExp('calendar-telegram-ignore-([12]\\\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\\d|3[01]))');
+        const nextDateRegexp: RegExp = new RegExp('calendar-telegram-next-.*');
+        const prevDateRegexp: RegExp = new RegExp('calendar-telegram-prev-.*');
+        const hourRegexp: RegExp = new RegExp('^[0-2][0-9]:[0-5][0-9]$');
 
         // view task list
         if (viewRegex.test(context.event.payload)) {
@@ -46,10 +52,63 @@ export class CallbackManager {
         }
 
         // delete event
-        if (deleteEvent.test(context.event.payload)) {
+        if (deleteEventRegex.test(context.event.payload)) {
             const eventId: string = context.event.payload.split('/')[1];
             await ggl.deleteEvent(eventId, context.state.user.googleEmail, context.state.user.googleCredential.access_token);
             await context.sendMessage('Evento eliminado correctamente');
+            return Promise.resolve();
+        }
+
+        //pickHour
+        if (hourRegexp.test(context.event.payload)) {
+            const hour: string = context.event.payload.split(':')[0];
+            const min: string = context.event.payload.split(':')[1];
+
+            const date = context.state.event.date;
+            date.setHours(hour);
+            date.setMinutes(min);
+
+            await ggl.createEvent(state.user.googleCredential.access_token, state.user.googleEmail, state.event.summary, date);
+            await context.sendMessage('Creado');
+
+        }
+
+        // pickDate
+        if (dateRegexp.test(context.event.payload) || alsoDateRegexp.test(context.event.payload)) {
+            const year: string = context.event.payload.split('-')[3];
+            const month: string = context.event.payload.split('-')[4];
+            const day: string = context.event.payload.split('-')[5];
+
+            context.setState({
+                event: {
+                    summary: context.state.event.summary,
+                    date: new Date(year + '-' + month + '-' + day)
+                }
+            });
+
+            await context.sendMessage('Selecciona una hora: ', {
+                reply_markup: {
+                    inline_keyboard: dayHours
+                }
+            });
+            return Promise.resolve();
+        }
+
+        // prevDate and next date
+        if (prevDateRegexp.test(context.event.payload) || nextDateRegexp.test(context.event.payload)) {
+            const year: string = context.event.payload.split('-')[3];
+            const month: string = context.event.payload.split('-')[4];
+            const day: string = context.event.payload.split('-')[5];
+            const date: Date = new Date(year + '-' + month + '-' + day);
+            if (prevDateRegexp.test(context.event.payload)) {
+                date.setMonth(date.getMonth() - 1);
+            } else {
+                date.setMonth(date.getMonth() + 1);
+            }
+            const maxDate = new Date();
+            maxDate.setMonth(date.getMonth() + 12);
+            // maxDate.setDate(date.getDate());
+            context.sendMessage('Selecciona la fecha del evento: ', calendar.setMinDate(date).setMaxDate(maxDate).getCalendar());
             return Promise.resolve();
         }
 
@@ -237,6 +296,12 @@ export class CallbackManager {
                         }
                     });
                 }
+                break;
+            case 'create_event':
+
+                context.sendMessage('¿Como se llamará el evento?');
+                context.setState({ currentStatus: { insertingEventDate: true } });
+
                 break;
             default:
                 break;

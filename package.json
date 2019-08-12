@@ -5,10 +5,11 @@
   "main": "dist/index.js",
   "scripts": {
     "prebuild": "tslint -c tslint.json -p tsconfig.json --fix",
-    "build": "tsc",
+    "build": "npm run prebuild && tsc",
     "prestart": "npm run build",
     "start": "node .",
     "watch": "npm run build && (tsc -p tsconfig.json -watch | nodemon --inspect=5861 ./dist/src/index.js)",
+    "set": "bottender telegram webhook set -w https://cloudbot.localtunnel.me &&  lt --port 80 --subdomain cloudbot",
     "prettier:write": "prettier --write ./src/**/*.ts index.ts"
   },
   "dependencies": {
@@ -33,6 +34,7 @@
     "prettier": "^1.16.4",
     "reflect-metadata": "^0.1.13",
     "sqlite3": "^4.0.6",
+    "telegraf-calendar-telegram": "^1.5.7",
     "typeorm": "^0.2.16"
   },
   "devDependencies": {

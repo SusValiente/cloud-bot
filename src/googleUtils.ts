@@ -7,10 +7,10 @@ const { google } = require('googleapis');
 import Moment from 'moment';
 
 export interface IGoogleEvent {
-    id: string,
-    summary: string,
-    endDate: string,
-    location: string
+    id: string;
+    summary: string;
+    endDate: string;
+    location: string;
 }
 
 export class GoogleUtils {
@@ -70,6 +70,36 @@ export class GoogleUtils {
             return true;
         }
     }
+
+    public async createEvent(accessToken: string, calendarId: string, eventSummary: string, date: Date): Promise<void> {
+        const uri = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events`;
+        const config = {
+            headers: {
+                Authorization: 'Bearer ' + accessToken
+            }
+        };
+        const asdf = `${date.getFullYear()}-${date.getMonth()}-${date.getUTCDate()}T${date.getHours()}:${date.getMinutes() + 30}:00.000Z`;
+        console.log(asdf);
+        console.log(date.getUTCDate());
+        console.log(date.getUTCDate());
+        try {
+            await axios.post(uri, {
+                summary: eventSummary,
+                description: 'descripcion de prueba',
+                location: 'Alicante',
+                end: {
+                    dateTime: `${date.getFullYear()}-${date.getMonth()}-${date.getUTCDate()}T${date.getHours()}:${date.getMinutes() + 30}:00.000Z`
+                },
+                start: {
+                    dateTime: `${date.getFullYear()}-${date.getMonth()}-${date.getUTCDate()}T${date.getHours()}:${date.getMinutes()}:00.000Z`
+                }
+            }, config);
+            return Promise.resolve();
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
 
     public async getNewAccessToken(refreshToken: string): Promise<string> {
         const newtoken = await this.oAuth2Client.refreshToken(refreshToken);

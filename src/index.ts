@@ -20,7 +20,7 @@ import { GoogleCredential } from './entities/googleCredential.entity';
 const { createServer } = require('bottender/express'); // does not have @types
 const { TelegramBot } = require('bottender');
 const { google } = require('googleapis');
-
+const Calendar = require('telegraf-calendar-telegram');
 require('dotenv').config();
 
 // typeorm config
@@ -36,6 +36,17 @@ const options: ConnectionOptions = {
 const bot = new TelegramBot({
     accessToken: config.telegram.accessToken
 });
+
+// instantiate the calendar
+const calendar = new Calendar(bot, {
+    startWeekDay: 1,
+    weekDayNames: ['L', 'M', 'M', 'J', 'V', 'S', 'D'],
+    monthNames: [
+        'En', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+        'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
+    ]
+});
+
 
 bot.setInitialState(initialState);
 
@@ -54,7 +65,7 @@ const dbx = new DropboxUtils();
 const ggl = new GoogleUtils();
 const client = bot.connector.client;
 
-async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any) {
+async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any, calendar: any) {
     bot.onEvent(async (context: any) => {
         try {
             auxiliarContext = context;
@@ -71,10 +82,10 @@ async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any) {
                 await PhotoManager.managePhoto(context, dbx, client);
             }
             if (context.event.isText) {
-                await TextManager.manageText(context, dbx, ggl);
+                await TextManager.manageText(context, dbx, ggl, calendar);
             }
             if (context.event.isCallbackQuery) {
-                await CallbackManager.manageCallback(context, dbx, ggl);
+                await CallbackManager.manageCallback(context, dbx, ggl, calendar);
             }
         } catch (error) {
             await context.sendMessage(error.message);
@@ -157,4 +168,4 @@ async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any) {
     });
 }
 connectTypeorm();
-main(dbx, ggl, client);
+main(dbx, ggl, client, calendar);

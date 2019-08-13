@@ -70,5 +70,12 @@ export const initialState: IState = {
         validatingChangePassword: false
     },
     dbx: null,
-    event: null
+    event: {
+        date: null,
+        summary: null,
+        location: null,
+        duration: null,
+        description: null,
+        hourAndMin: null
+    }
 };

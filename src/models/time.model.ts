@@ -33,7 +33,7 @@ export const dayHours: any = [
         {
             text: '3:30',
             callback_data: '03:30'
-        },
+        }
     ],
     [
         {
@@ -217,40 +217,39 @@ export const dayHours: any = [
     ]
 ];
 
-
 export const durations: any = [
-        [
-            {
-                text: '15 min',
-                callback_data: 'duration/15'
-            },
-            {
-                text: '30 min',
-                callback_data: 'duration/30'
-            },
-            {
-                text: '45 min',
-                callback_data: 'duration/45'
-            }
-        ],
-        [
-            {
-                text: '1 h',
-                callback_data: 'duration/60'
-            },
-            {
-                text: '2 h',
-                callback_data: 'duration/120'
-            },
-            {
-                text: '3 h',
-                callback_data: 'duration/180'
-            }
-        ],
-        [
-            {
-                text: 'Todo el dia',
-                callback_data: 'duration/all_day'
-            }
-        ]
+    [
+        {
+            text: '15 min',
+            callback_data: 'duration/15'
+        },
+        {
+            text: '30 min',
+            callback_data: 'duration/30'
+        },
+        {
+            text: '45 min',
+            callback_data: 'duration/45'
+        }
+    ],
+    [
+        {
+            text: '1 h',
+            callback_data: 'duration/60'
+        },
+        {
+            text: '2 h',
+            callback_data: 'duration/120'
+        },
+        {
+            text: '3 h',
+            callback_data: 'duration/180'
+        }
+    ],
+    [
+        {
+            text: 'Todo el dia',
+            callback_data: 'duration/all_day'
+        }
+    ]
 ];

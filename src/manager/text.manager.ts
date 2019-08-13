@@ -222,7 +222,6 @@ export class TextManager {
      * @memberof TextManager
      */
     public static async manageInsertingDate(context: any, calendar: any): Promise<void> {
-
         if (context.state.currentStatus.insertingEventSummary) {
             context.setState({
                 event: {
@@ -234,8 +233,10 @@ export class TextManager {
                     hourAndMin: context.state.event.hourAndMin
                 },
                 currentStatus: {
+                    creatingEvent: true,
                     insertingEventSummary: false,
-                    insertingEventLocation: true }
+                    insertingEventLocation: true
+                }
             });
             context.sendMessage('Escribe el lugar donde se realizará el evento:');
             return Promise.resolve();
@@ -251,6 +252,7 @@ export class TextManager {
                     hourAndMin: context.state.event.hourAndMin
                 },
                 currentStatus: {
+                    creatingEvent: true,
                     insertingEventLocation: false
                 }
             });
@@ -261,11 +263,11 @@ export class TextManager {
                         [
                             {
                                 text: 'Si',
-                                callback_data: 'ignore_description'
+                                callback_data: 'add_description'
                             },
                             {
                                 text: 'No',
-                                callback_data: 'add_description'
+                                callback_data: 'ignore_description'
                             }
                         ]
                     ]
@@ -296,7 +298,13 @@ export class TextManager {
             const maxDate = new Date();
             maxDate.setMonth(today.getMonth() + 12);
             maxDate.setDate(today.getDate());
-            context.sendMessage('Selecciona la fecha del evento: ', calendar.setMinDate(minDate).setMaxDate(maxDate).getCalendar());
+            context.sendMessage(
+                'Selecciona la fecha del evento: ',
+                calendar
+                    .setMinDate(minDate)
+                    .setMaxDate(maxDate)
+                    .getCalendar()
+            );
             return Promise.resolve();
         }
 

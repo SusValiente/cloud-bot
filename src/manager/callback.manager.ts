@@ -10,7 +10,7 @@ import { DropboxUtils } from '../dropboxUtils';
 import { IUser } from '../models/user.model';
 import { GoogleCredentials } from '../../credentials';
 import { GoogleUtils, IGoogleEvent } from '../googleUtils';
-import { dayHours } from './../models/time.model';
+import { dayHours, durations } from './../models/time.model';
 
 const { google } = require('googleapis');
 
@@ -59,17 +59,44 @@ export class CallbackManager {
             return Promise.resolve();
         }
 
-        //pickHour
+        // pickHour
         if (hourRegexp.test(context.event.payload)) {
-            const hour: string = context.event.payload.split(':')[0];
-            const min: string = context.event.payload.split(':')[1];
+            // const hour: string = context.event.payload.split(':')[0];
+            // const min: string = context.event.payload.split(':')[1];
 
-            const date = context.state.event.date;
-            date.setHours(hour);
-            date.setMinutes(min);
+            // const date = context.state.event.date;
+            // date.setHours(hour);
+            // date.setMinutes(min);
 
-            await ggl.createEvent(state.user.googleCredential.access_token, state.user.googleEmail, state.event.summary, date);
-            await context.sendMessage('Creado');
+            // await ggl.createEvent(state.user.googleCredential.access_token, state.user.googleEmail, state.event.summary, date);
+            // context.setState({
+            //     currentStatus: {
+            //         creatingEvent: false
+            //     }
+            // });
+            // await context.sendMessage('Creado');
+
+            context.setState({
+                event: {
+                    summary: context.state.event.summary,
+                    location: context.state.event.location,
+                    date: context.state.event.date,
+                    duration: context.state.event.duration,
+                    description: context.state.event.description,
+                    hourAndMin: context.event.payload
+                }
+            });
+
+            await context.sendMessage('¿Cuanto va a durar el evento?', {
+                reply_markup: {
+                    inline_keyboard: durations
+                }
+            });
+
+        }
+
+        // pickDuration
+        if (1 === 1) {
 
         }
 
@@ -81,6 +108,8 @@ export class CallbackManager {
 
             context.setState({
                 event: {
+                    location: context.state.event.location,
+                    duration: context.state.event.duration,
                     summary: context.state.event.summary,
                     date: new Date(year + '-' + month + '-' + day)
                 }
@@ -300,9 +329,49 @@ export class CallbackManager {
             case 'create_event':
 
                 context.sendMessage('¿Como se llamará el evento?');
-                context.setState({ currentStatus: { insertingEventDate: true } });
+                context.setState({
+                    currentStatus: {
+                        insertingEventSummary: true,
+                        creatingEvent: true
+                    }
+                });
 
                 break;
+
+            case 'ignore_description':
+
+                context.setState({
+                    event: {
+                        summary: context.state.event.summary,
+                        location: context.state.event.location,
+                        date: context.state.event.date,
+                        duration: context.state.event.duration,
+                        description: null
+                    }
+                });
+
+                const today = new Date();
+                const minDate = new Date();
+                minDate.setMonth(today.getMonth() - 12);
+                const maxDate = new Date();
+                maxDate.setMonth(today.getMonth() + 12);
+                maxDate.setDate(today.getDate());
+                context.sendMessage('Selecciona la fecha del evento: ', calendar.setMinDate(minDate).setMaxDate(maxDate).getCalendar());
+
+                break;
+
+            case 'add_description':
+
+                context.setState({
+                    currentStatus: {
+                        insertingEventDescription: true
+                    }
+                });
+
+                context.sendMessage('Escribe una description para el evento:');
+
+                break;
+
             default:
                 break;
         }

@@ -14,6 +14,10 @@ export interface IState {
 export interface IEvent {
     date: Date;
     summary: string;
+    location: string;
+    duration: number;
+    description: string;
+    hourAndMin: string;
 }
 
 export interface IData {
@@ -27,7 +31,10 @@ export interface IChatStatus {
     insertingPassword: boolean;
     insertingDropboxEmail: boolean;
     insertingGoogleAccount: boolean;
-    insertingEventDate: boolean;
+    insertingEventLocation: boolean;
+    insertingEventSummary: boolean;
+    insertingEventDescription: boolean;
+    creatingEvent: boolean;
     registering: boolean;
     logging: boolean;
     creatingTaskList: boolean;
@@ -50,8 +57,11 @@ export const initialState: IState = {
         insertingPassword: false,
         insertingDropboxEmail: false,
         insertingGoogleAccount: false,
-        insertingEventDate: false,
+        insertingEventSummary: false,
+        insertingEventLocation: false,
+        insertingEventDescription: false,
         registering: false,
+        creatingEvent: false,
         logging: false,
         creatingTaskList: false,
         addingTask: false,

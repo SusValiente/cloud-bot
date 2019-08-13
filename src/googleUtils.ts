@@ -71,35 +71,43 @@ export class GoogleUtils {
         }
     }
 
-    public async createEvent(accessToken: string, calendarId: string, eventSummary: string, date: Date): Promise<void> {
+    public async createEvent(
+        accessToken: string,
+        calendarId: string,
+        eventSummary: string,
+        date: Date,
+        descriptionEvent: string,
+        locationEvent: string,
+        duration?: number
+    ): Promise<void> {
         const uri = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events`;
         const config = {
             headers: {
                 Authorization: 'Bearer ' + accessToken
             }
         };
-        const asdf = `${date.getFullYear()}-${date.getMonth()}-${date.getUTCDate()}T${date.getHours()}:${date.getMinutes() + 30}:00.000Z`;
-        console.log(asdf);
-        console.log(date.getUTCDate());
-        console.log(date.getUTCDate());
+        const endDate: Date = new Date(date);
+        endDate.setMinutes(date.getMinutes() + duration);
         try {
-            await axios.post(uri, {
+            const body: any = {
                 summary: eventSummary,
-                description: 'descripcion de prueba',
-                location: 'Alicante',
+                location: locationEvent,
                 end: {
-                    dateTime: `${date.getFullYear()}-${date.getMonth()}-${date.getUTCDate()}T${date.getHours()}:${date.getMinutes() + 30}:00.000Z`
+                    dateTime: `${endDate.getFullYear()}-${endDate.getMonth() + 1}-${endDate.getUTCDate()}T${endDate.getHours()}:${endDate.getMinutes()}:00.000Z`
                 },
                 start: {
-                    dateTime: `${date.getFullYear()}-${date.getMonth()}-${date.getUTCDate()}T${date.getHours()}:${date.getMinutes()}:00.000Z`
+                    dateTime: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getUTCDate()}T${date.getHours()}:${date.getMinutes()}:00.000Z`
                 }
-            }, config);
+            };
+            if (!_.isNil(descriptionEvent)) {
+                body.description = descriptionEvent;
+            }
+            await axios.post(uri, body, config);
             return Promise.resolve();
         } catch (error) {
             console.log(error);
         }
     }
-
 
     public async getNewAccessToken(refreshToken: string): Promise<string> {
         const newtoken = await this.oAuth2Client.refreshToken(refreshToken);
@@ -124,10 +132,15 @@ export class GoogleUtils {
                 events.push({
                     id: element.id,
                     summary: element.summary,
-                    endDate:
-                        !_.isNil(element.end.date) ? Moment.utc(element.end.date).locale('es').format('dddd, MMMM Do YYYY, h:mm:ss a') :
-                            !_.isNil(element.end.dateTime) ? Moment.utc(element.end.dateTime).locale('es').format('dddd, MMMM Do YYYY, h:mm:ss a') :
-                                'No definido',
+                    endDate: !_.isNil(element.end.date)
+                        ? Moment.utc(element.end.date)
+                              .locale('es')
+                              .format('dddd, MMMM Do YYYY, h:mm:ss a')
+                        : !_.isNil(element.end.dateTime)
+                        ? Moment.utc(element.end.dateTime)
+                              .locale('es')
+                              .format('dddd, MMMM Do YYYY, h:mm:ss a')
+                        : 'No definido',
                     location: _.isNil(element.location) ? 'No definido' : element.location
                 });
             });

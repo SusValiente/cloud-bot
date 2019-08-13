@@ -41,12 +41,8 @@ const bot = new TelegramBot({
 const calendar = new Calendar(bot, {
     startWeekDay: 1,
     weekDayNames: ['L', 'M', 'M', 'J', 'V', 'S', 'D'],
-    monthNames: [
-        'En', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-        'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
-    ]
+    monthNames: ['En', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 });
-
 
 bot.setInitialState(initialState);
 

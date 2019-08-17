@@ -1,6 +1,5 @@
 /* tslint:disable:max-line-length */
 export enum Messages {
-    ERROR = 'Algo ha ido mal, intentalo de nuevo porfavor',
     START_KNOWN_USER = 'En ese caso dime como te llamas',
     START_UNKNOWN_USER = 'En ese caso primero tengo que conocerte un poco, dime ¿como te llamas?',
     START_NAME_TAKEN = 'Ya conozco a un usuario con ese nombre, dime otro porfavor',
@@ -34,7 +33,9 @@ export enum Messages {
     VALIDATE_CHANGE_PASSWORD = 'Introduce primero tu actual contraseña',
     LOGOUT = 'Hasta luego!',
     ASK_GOOGLE = 'Soy capaz de recordarte cualquier cosa que me digas, pero para eso necesito que me vincules con tu cuenta de Google, ¿Estas conforme?',
-    CALENDAR = 'Desde aqui puedes gestionar tus proximos eventos de tu Calendario personal, ¿Que quieres hacer?'
+    CALENDAR = 'Desde aqui puedes gestionar tus proximos eventos de tu Calendario personal, ¿Que quieres hacer?',
+    ERROR = 'Parece que algo ha ido mal . . . ¿Porque no lo intentas de nuevo?',
+    USER_FORGOTTEN = 'Vaya, parece que me he olvidado de quien eres, ¿Porque no me refrescas la memoria?, utiliza /start para ello'
 }
 
 export const START = `

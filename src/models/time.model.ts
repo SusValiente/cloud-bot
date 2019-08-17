@@ -245,11 +245,5 @@ export const durations: any = [
             text: '3 h',
             callback_data: 'duration/180'
         }
-    ],
-    [
-        {
-            text: 'Todo el dia',
-            callback_data: 'duration/all_day'
-        }
     ]
 ];

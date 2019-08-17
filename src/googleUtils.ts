@@ -93,10 +93,11 @@ export class GoogleUtils {
                 summary: eventSummary,
                 location: locationEvent,
                 end: {
-                    dateTime: `${endDate.getFullYear()}-${endDate.getMonth() + 1}-${endDate.getUTCDate()}T${endDate.getHours()}:${endDate.getMinutes()}:00.000Z`
+                    dateTime: `${endDate.getFullYear()}-${endDate.getMonth() + 1}-${endDate.getUTCDate()}T${endDate.getHours() -
+                        2}:${endDate.getMinutes()}:00.000Z`
                 },
                 start: {
-                    dateTime: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getUTCDate()}T${date.getHours()}:${date.getMinutes()}:00.000Z`
+                    dateTime: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getUTCDate()}T${date.getHours() - 2}:${date.getMinutes()}:00.000Z`
                 }
             };
             if (!_.isNil(descriptionEvent)) {

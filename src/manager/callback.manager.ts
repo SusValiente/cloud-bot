@@ -115,22 +115,10 @@ export class CallbackManager {
             const summary = context.state.event.summary;
 
             if (_.isNil(durationMinutesNumber) || _.isNil(date) || _.isNil(location) || _.isNil(summary)) {
-                await context.sendMessage('Parece que algo ha ido mal . . . ¿Porque no lo intentas de nuevo?');
+                await context.sendMessage(Messages.ERROR);
                 return Promise.resolve();
             }
-            console.log('CURRENT EVENT:' + context.state.event);
             try {
-                if (context.event.payload === 'duration/all_day') {
-                    await ggl.createEvent(
-                        context.state.user.googleCredential.access_token,
-                        context.state.user.googleEmail,
-                        summary,
-                        date,
-                        description,
-                        location
-                    );
-                    return Promise.resolve();
-                }
                 await ggl.createEvent(
                     context.state.user.googleCredential.access_token,
                     context.state.user.googleEmail,
@@ -583,7 +571,7 @@ export class CallbackManager {
 
     private static async userStillExistant(context: any): Promise<boolean> {
         if (_.isNil(context.state.user)) {
-            await context.sendMessage('Vaya, parece que me he olvidado de quien eres, ¿Porque no me refrescas la memoria?, utiliza /start para ello');
+            await context.sendMessage(Messages.USER_FORGOTTEN);
             return Promise.resolve(false);
         }
         return Promise.resolve(true);

@@ -7,6 +7,8 @@ import { TaskList } from './entities/taskList.entity';
 import { ITask } from './models/task.model';
 import { Task } from './entities/task.entity';
 import { Messages } from './messages';
+import { IGoogleCredential } from './models/googleToken.model';
+import { GoogleCredential } from './entities/googleCredential.entity';
 
 export class Utils {
     /**
@@ -66,7 +68,8 @@ export class Utils {
                 where: {
                     username: givenUsername,
                     password: givenPassword
-                }
+                },
+                relations: ['googleCredential']
             });
 
         return Promise.resolve(user);
@@ -86,7 +89,8 @@ export class Utils {
             .findOne({
                 where: {
                     id: userId
-                }
+                },
+                relations: ['googleCredential']
             });
         if (_.isNil(user)) {
             return Promise.reject('User not found');
@@ -208,7 +212,6 @@ export class Utils {
             }
         });
         if (user) {
-            user.dropboxCode = null;
             user.dropboxToken = null;
             await userRepository.save(user);
         }
@@ -226,5 +229,23 @@ export class Utils {
     public static getHiddenPassword(password: string): string {
         const hiddenPassword = password[0] + '******' + password[password.length - 1];
         return hiddenPassword;
+    }
+
+    /**
+     * update access token of google credential in database
+     *
+     * @param {string} idCredential
+     * @param {string} newAccessToken
+     * @returns {Promise<void>}
+     * @memberof Utils
+     */
+    public static async updateAccessToken(idCredential: string, newAccessToken: string): Promise<void> {
+        const googleRepo = await getConnection().getRepository(GoogleCredential);
+        const credential = await googleRepo.findOne({ where: { id: idCredential } });
+        if (_.isNil(credential)) {
+            return;
+        }
+        credential.access_token = newAccessToken;
+        await googleRepo.save(credential);
     }
 }

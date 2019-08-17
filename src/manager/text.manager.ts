@@ -7,6 +7,9 @@ import { TaskList } from '../entities/taskList.entity';
 import { ITaskList } from '../models/taskList.model';
 import { Task } from '../entities/task.entity';
 import { DropboxUtils } from '../dropboxUtils';
+import { GoogleCredentials } from '../../credentials';
+import { GoogleUtils } from '../googleUtils';
+const { google } = require('googleapis');
 
 /**
  * Class Text manager that manages all text event received
@@ -15,7 +18,7 @@ import { DropboxUtils } from '../dropboxUtils';
  * @class TextManager
  */
 export class TextManager {
-    public static async manageText(context: any, dbx: DropboxUtils): Promise<void> {
+    public static async manageText(context: any, dbx: DropboxUtils, ggl: GoogleUtils, calendar: any): Promise<void> {
         const validateRegexp: RegExp = new RegExp('^(?=.{4,20}$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9]+(?<![_.])$');
         let state: IState = context.state;
         switch (context.event.text) {
@@ -128,22 +131,48 @@ export class TextManager {
 
                 break;
 
+            case '/calendar':
+                if (state.user) {
+                    const user = await Utils.getUser(state.user.id);
+                    if (_.isNil(user.googleEmail) || _.isNil(user.googleCredential)) {
+                        await context.sendMessage(Messages.NO_GOOGLE);
+                        return Promise.resolve();
+                    }
+                    state.user = user;
+                    const isExpired = await ggl.isTokenExpired(user.googleCredential.access_token);
+                    if (isExpired) {
+                        const newToken = await ggl.getNewAccessToken(user.googleCredential.refresh_token);
+                        await Utils.updateAccessToken(user.googleCredential.id, newToken);
+                        state.user.googleCredential.access_token = newToken;
+                    }
+                    await context.sendMessage(Messages.CALENDAR, {
+                        reply_markup: {
+                            inline_keyboard: [
+                                [
+                                    {
+                                        text: 'Ver próximos eventos',
+                                        callback_data: 'see_events'
+                                    },
+                                    {
+                                        text: 'Crear evento',
+                                        callback_data: 'create_event'
+                                    }
+                                ]
+                            ]
+                        }
+                    });
+                } else {
+                    await context.sendMessage(Messages.DONT_KNOW_YOU);
+                }
+                break;
+
             case '/testing':
                 await context.sendMessage('QUE HACES TOCANDO ESTO !!?? D<');
-                if (!_.isNil(context.state.user) && !_.isNil(context.state.user.dropboxToken)) {
-                    try {
-                        dbx.setToken(context.state.user.dropboxToken);
-                        const files = await dbx.getFiles('/photos', 10);
-                        await context.sendMessage(files);
-                        console.log(files);
-                    } catch (error) {
-                        console.log(error);
-                        await context.sendMessage(error.message);
-                    }
-                } else {
-                    await context.sendMessage('No hay token');
-                }
 
+                try {
+                } catch (error) {
+                    console.log(error);
+                }
                 break;
 
             default:
@@ -174,9 +203,111 @@ export class TextManager {
                         await context.sendMessage(Messages.TASK_LIST_UNDEFINED);
                     }
                 }
+                if (state.currentStatus.creatingEvent) {
+                    await this.manageInsertingDate(context, calendar);
+                }
 
                 break;
         }
+        return Promise.resolve();
+    }
+
+    /**
+     * @method manageRegisterStatus manages messages when the status is inserting a date
+     *
+     * @static
+     * @param {*} context
+     * @param {*} calendar
+     * @returns {Promise<void>}
+     * @memberof TextManager
+     */
+    public static async manageInsertingDate(context: any, calendar: any): Promise<void> {
+        if (context.state.currentStatus.insertingEventSummary) {
+            context.setState({
+                event: {
+                    summary: context.event.text,
+                    location: context.state.event.location,
+                    date: context.state.event.date,
+                    duration: context.state.event.duration,
+                    description: context.state.event.description,
+                    hourAndMin: context.state.event.hourAndMin
+                },
+                currentStatus: {
+                    creatingEvent: true,
+                    insertingEventSummary: false,
+                    insertingEventLocation: true
+                }
+            });
+            context.sendMessage('Escribe el lugar donde se realizará el evento:');
+            return Promise.resolve();
+        }
+        if (context.state.currentStatus.insertingEventLocation) {
+            context.setState({
+                event: {
+                    summary: context.state.event.summary,
+                    location: context.event.text,
+                    date: context.state.event.date,
+                    duration: context.state.event.duration,
+                    description: context.state.event.description,
+                    hourAndMin: context.state.event.hourAndMin
+                },
+                currentStatus: {
+                    creatingEvent: true,
+                    insertingEventLocation: false
+                }
+            });
+
+            await context.sendMessage('¿Quieres añadir una descripction al evento?', {
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            {
+                                text: 'Si',
+                                callback_data: 'add_description'
+                            },
+                            {
+                                text: 'No',
+                                callback_data: 'ignore_description'
+                            }
+                        ]
+                    ]
+                }
+            });
+
+            return Promise.resolve();
+        }
+
+        if (context.state.currentStatus.insertingEventDescription) {
+            context.setState({
+                event: {
+                    summary: context.state.event.summary,
+                    location: context.state.event.location,
+                    date: context.state.event.date,
+                    duration: context.state.event.duration,
+                    description: context.event.text,
+                    hourAndMin: context.state.event.hourAndMin
+                },
+                currentStatus: {
+                    insertingEventDescription: false
+                }
+            });
+
+            const today = new Date();
+            const minDate = new Date();
+            minDate.setMonth(today.getMonth() - 12);
+            const maxDate = new Date();
+            maxDate.setMonth(today.getMonth() + 12);
+            maxDate.setDate(today.getDate());
+            context.sendMessage(
+                'Selecciona la fecha del evento: ',
+                calendar
+                    .setMinDate(minDate)
+                    .setMaxDate(maxDate)
+                    .getCalendar()
+            );
+            return Promise.resolve();
+        }
+
         return Promise.resolve();
     }
 
@@ -240,6 +371,42 @@ export class TextManager {
                 }
             });
             next = false;
+        }
+        if (next) {
+            const oauth2Client = new google.auth.OAuth2(
+                GoogleCredentials.web.client_id,
+                GoogleCredentials.web.client_secret,
+                GoogleCredentials.web.redirect_uris[0]
+            );
+
+            google.options({ auth: oauth2Client });
+
+            const scopes = ['https://www.googleapis.com/auth/calendar'];
+            const authorizeUrl = oauth2Client.generateAuthUrl({
+                access_type: 'offline',
+                scope: scopes.join(' ')
+            });
+
+            await context.sendMessage(Messages.ASK_GOOGLE, {
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            {
+                                text: 'Vincular Google',
+                                url: authorizeUrl
+                            }
+                        ],
+                        [
+                            {
+                                text: 'No vincular',
+                                callback_data: 'ignore_google'
+                            }
+                        ]
+                    ]
+                }
+            });
+            next = false;
+            state.currentStatus.registering = false;
         }
 
         return Promise.resolve();

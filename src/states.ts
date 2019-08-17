@@ -8,6 +8,16 @@ export interface IState {
     user: IUser;
     taskList: ITaskList;
     dbx: Dropbox;
+    event: IEvent;
+}
+
+export interface IEvent {
+    date: Date;
+    summary: string;
+    location: string;
+    duration: number;
+    description: string;
+    hourAndMin: string;
 }
 
 export interface IData {
@@ -17,11 +27,14 @@ export interface IData {
 }
 
 export interface IChatStatus {
-    dropboxActive: boolean;
     insertingUsername: boolean;
     insertingPassword: boolean;
     insertingDropboxEmail: boolean;
-    insertingDropboxPassword: boolean;
+    insertingGoogleAccount: boolean;
+    insertingEventLocation: boolean;
+    insertingEventSummary: boolean;
+    insertingEventDescription: boolean;
+    creatingEvent: boolean;
     registering: boolean;
     logging: boolean;
     creatingTaskList: boolean;
@@ -40,12 +53,15 @@ export const initialState: IState = {
         password: null
     },
     currentStatus: {
-        dropboxActive: null,
         insertingUsername: false,
         insertingPassword: false,
         insertingDropboxEmail: false,
-        insertingDropboxPassword: false,
+        insertingGoogleAccount: false,
+        insertingEventSummary: false,
+        insertingEventLocation: false,
+        insertingEventDescription: false,
         registering: false,
+        creatingEvent: false,
         logging: false,
         creatingTaskList: false,
         addingTask: false,
@@ -53,5 +69,13 @@ export const initialState: IState = {
         changingPassword: false,
         validatingChangePassword: false
     },
-    dbx: null
+    dbx: null,
+    event: {
+        date: null,
+        summary: null,
+        location: null,
+        duration: null,
+        description: null,
+        hourAndMin: null
+    }
 };

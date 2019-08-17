@@ -29,12 +29,14 @@ export class PhotoManager {
         }
 
         dbx.setToken(dbxToken);
-
-        let photo = await client.getFile(context.event.photo[2].file_id);
-        if (_.isNil(photo)) {
+        let photo = null;
+        if (!_.isNil(context.event.photo[2])) {
+            photo = await client.getFile(context.event.photo[2].file_id);
+        }
+        if (_.isNil(photo) && !_.isNil(context.event.photo[1])) {
             photo = await client.getFile(context.event.photo[1].file_id);
         }
-        if (_.isNil(photo)) {
+        if (_.isNil(photo) && !_.isNil(context.event.photo[0])) {
             photo = await client.getFile(context.event.photo[0].file_id);
         }
         if (_.isNil(photo)) {

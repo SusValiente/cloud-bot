@@ -4,13 +4,13 @@ import { Utils } from '../utils';
 import { Messages } from '../messages';
 
 /**
- * Class representing Photo Manager
+ * Class representing Video Manager
  *
  * @export
- * @class PhotoManager
+ * @class VideoManager
  */
-export class PhotoManager {
-    public static async managePhoto(context: any, dbx: DropboxUtils, client: any): Promise<void> {
+export class VideoManager {
+    public static async manageVideo(context: any, dbx: DropboxUtils, client: any): Promise<void> {
         if (_.isNil(context.state.user)) {
             await context.sendMessage(Messages.DONT_KNOW_YOU);
             return Promise.resolve();
@@ -29,28 +29,17 @@ export class PhotoManager {
         }
 
         dbx.setToken(dbxToken);
-        let photo = null;
-        if (!_.isNil(context.event.photo[2])) {
-            photo = await client.getFile(context.event.photo[2].file_id);
+        let video = null;
+        if (!_.isNil(context.event.message.video)) {
+            video = await client.getFile(context.event.message.video.file_id);
         }
-        if (_.isNil(photo) && !_.isNil(context.event.photo[1])) {
-            photo = await client.getFile(context.event.photo[1].file_id);
-        }
-        if (_.isNil(photo) && !_.isNil(context.event.photo[0])) {
-            photo = await client.getFile(context.event.photo[0].file_id);
-        }
-        if (_.isNil(photo)) {
+        if (_.isNil(video)) {
             await context.sendMessage(Messages.INVALID_FILE);
             return Promise.resolve();
         }
         try {
-            if (_.isNil(context.event.message.caption)) {
-                await dbx.uploadFileByUrl(photo.file_path);
-            } else {
-                await dbx.uploadPhotoByUrl(photo.file_path, context.event.message.caption);
-            }
-
-            await context.sendMessage(Messages.UPLOAD_PHOTO_SUCCESS);
+            await dbx.uploadFileByUrl(video.file_path);
+            await context.sendMessage('Video subido correctamente');
         } catch (error) {
             console.log(error);
             await context.sendMessage(error.message);

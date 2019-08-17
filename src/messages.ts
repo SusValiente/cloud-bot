@@ -24,7 +24,7 @@ export enum Messages {
     USERNAME_TOO_SHORT = 'Tu nombre de usuario debe contener al menos cuatro caracteres, todos ellos alfanuméricos, prueba de nuevo',
     PASSWORD_TOO_SHORT = 'Tu contraseña debe contener al menos ocho caracteres, todos ellos alfanuméricos, prueba de nuevo',
     UPLOAD_PHOTO_SUCCESS = 'Imagen subida correctamente',
-    UNVALID_PHOTO = 'Parece que no puedo trabajar con esa imagen, prueba con otra diferente',
+    INVALID_FILE = 'Parece que no puedo trabajar con ese archivo, prueba con otro diferente',
     UNLINKED_DROPBOX = 'Dropbox desvinculado con exito',
     CHANGE_USERNAME = '¿Cual es el nuevo nombre de usuario?',
     CHANGE_PASSWORD = '¿Cual será tu nueva contraseña?',

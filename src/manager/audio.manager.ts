@@ -4,13 +4,13 @@ import { Utils } from '../utils';
 import { Messages } from '../messages';
 
 /**
- * Class representing Photo Manager
+ * Class representing Audio Manager
  *
  * @export
- * @class PhotoManager
+ * @class AudioManager
  */
-export class PhotoManager {
-    public static async managePhoto(context: any, dbx: DropboxUtils, client: any): Promise<void> {
+export class AudioManager {
+    public static async manageAudio(context: any, dbx: DropboxUtils, client: any): Promise<void> {
         if (_.isNil(context.state.user)) {
             await context.sendMessage(Messages.DONT_KNOW_YOU);
             return Promise.resolve();
@@ -29,28 +29,20 @@ export class PhotoManager {
         }
 
         dbx.setToken(dbxToken);
-        let photo = null;
-        if (!_.isNil(context.event.photo[2])) {
-            photo = await client.getFile(context.event.photo[2].file_id);
+        let audio = null;
+        if (!_.isNil(context.event.message.audio)) {
+            audio = await client.getFile(context.event.message.audio.file_id);
         }
-        if (_.isNil(photo) && !_.isNil(context.event.photo[1])) {
-            photo = await client.getFile(context.event.photo[1].file_id);
+        if (!_.isNil(context.event.message.voice)) {
+            audio = await client.getFile(context.event.message.voice.file_id);
         }
-        if (_.isNil(photo) && !_.isNil(context.event.photo[0])) {
-            photo = await client.getFile(context.event.photo[0].file_id);
-        }
-        if (_.isNil(photo)) {
+        if (_.isNil(audio)) {
             await context.sendMessage(Messages.INVALID_FILE);
             return Promise.resolve();
         }
         try {
-            if (_.isNil(context.event.message.caption)) {
-                await dbx.uploadFileByUrl(photo.file_path);
-            } else {
-                await dbx.uploadPhotoByUrl(photo.file_path, context.event.message.caption);
-            }
-
-            await context.sendMessage(Messages.UPLOAD_PHOTO_SUCCESS);
+            await dbx.uploadFileByUrl(audio.file_path);
+            await context.sendMessage('Audio subido correctamente');
         } catch (error) {
             console.log(error);
             await context.sendMessage(error.message);

@@ -338,6 +338,7 @@ export class TextManager {
                 next = false;
             } else {
                 await context.sendMessage(Messages.START_NAME_TAKEN);
+                return Promise.resolve();
             }
         }
         if (state.currentStatus.insertingPassword && _.isNil(state.userData.password) && next) {
@@ -376,7 +377,7 @@ export class TextManager {
             const oauth2Client = new google.auth.OAuth2(
                 GoogleCredentials.web.client_id,
                 GoogleCredentials.web.client_secret,
-                GoogleCredentials.web.redirect_uris[0]
+                GoogleCredentials.web.redirect_uris[1]
             );
 
             google.options({ auth: oauth2Client });

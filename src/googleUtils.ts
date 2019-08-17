@@ -20,7 +20,7 @@ export class GoogleUtils {
         this.oAuth2Client = new google.auth.OAuth2(
             GoogleCredentials.web.client_id,
             GoogleCredentials.web.client_secret,
-            GoogleCredentials.web.redirect_uris[0]
+            GoogleCredentials.web.redirect_uris[1]
         );
     }
 

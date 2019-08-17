@@ -4,7 +4,9 @@ import { ConnectionOptions, createConnection } from 'typeorm';
 import { TextManager } from './manager/text.manager';
 import { CallbackManager } from './manager/callback.manager';
 import { PhotoManager } from './manager/photo.manager';
-import { DocumentManager } from './manager/document.manager';
+import { VideoManager } from './manager/video.manager';
+import { AudioManager } from './manager/audio.manager';
+import { FileManager } from './manager/file.manager';
 import * as _ from 'lodash';
 import { initialState } from './states';
 import { Messages } from './messages';
@@ -72,10 +74,16 @@ async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any, calendar: 
                 console.log('USER NULL');
             }
             if (context.event.isDocument) {
-                await DocumentManager.manageDocument(context);
+                await FileManager.manageFile(context, dbx, client);
             }
             if (context.event.isPhoto) {
                 await PhotoManager.managePhoto(context, dbx, client);
+            }
+            if (context.event.isVideo) {
+                await VideoManager.manageVideo(context, dbx, client);
+            }
+            if (context.event.isAudio || context.event.isVoice) {
+                await AudioManager.manageAudio(context, dbx, client);
             }
             if (context.event.isText) {
                 await TextManager.manageText(context, dbx, ggl, calendar);
@@ -91,7 +99,7 @@ async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any, calendar: 
     const server = createServer(bot);
 
     server.get('/auth', async (req: any, res: any) => {
-        if (!_.isNil(auxiliarContext.state.user) && !_.isNil(req.query.code)) {
+        if (auxiliarContext && !_.isNil(auxiliarContext.state.user) && !_.isNil(req.query.code)) {
             const userRepository = await getConnection().getRepository(User);
             const user = await userRepository.findOne({ where: { id: auxiliarContext.state.user.id } });
             const token = await dbx.getToken(req.query.code);

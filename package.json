@@ -13,13 +13,6 @@
     "prettier:write": "prettier --write ./src/**/*.ts index.ts"
   },
   "dependencies": {
-    "@types/axios": "^0.14.0",
-    "@types/dropboxjs": "0.0.29",
-    "@types/isomorphic-fetch": "0.0.35",
-    "@types/lodash": "^4.14.129",
-    "@types/moment": "^2.13.0",
-    "@types/node": "^11.11.8",
-    "@types/node-fetch": "^2.3.7",
     "axios": "^0.19.0",
     "bottender": "0.15.17",
     "dotenv": "^6.2.0",
@@ -38,6 +31,13 @@
     "typeorm": "^0.2.16"
   },
   "devDependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/dropboxjs": "0.0.29",
+    "@types/isomorphic-fetch": "0.0.35",
+    "@types/lodash": "^4.14.129",
+    "@types/moment": "^2.13.0",
+    "@types/node": "^11.11.8",
+    "@types/node-fetch": "^2.3.7",
     "tslint": "^5.16.0",
     "typescript": "^3.4.5"
   }

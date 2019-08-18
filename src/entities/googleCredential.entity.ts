@@ -25,6 +25,6 @@ export class GoogleCredential implements IGoogleCredential {
     @Column({ type: 'varchar', nullable: false })
     expiry_date: number;
 
-    @OneToOne(type => User, user => user.googleCredential)
+    @OneToOne(type => User, user => user.googleCredential, { cascade: true, onDelete: 'CASCADE' })
     user: User;
 }

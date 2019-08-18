@@ -80,6 +80,12 @@ export class TextManager {
                                         text: 'Cerrar sesión',
                                         callback_data: 'logout'
                                     }
+                                ],
+                                [
+                                    {
+                                        text: 'Eliminar cuenta',
+                                        callback_data: 'delete_user'
+                                    }
                                 ]
                             ]
                         }
@@ -98,9 +104,7 @@ export class TextManager {
                                     {
                                         text: 'Ver listas de tareas',
                                         callback_data: 'task_list'
-                                    }
-                                ],
-                                [
+                                    },
                                     {
                                         text: 'Crear lista de tareas',
                                         callback_data: 'create_task_list'
@@ -119,10 +123,10 @@ export class TextManager {
                     // TODO: show only two last characters of password
                     context.sendMessage(
                         `
-                            Tus datos:
-                            Nombre de usuario: ${user.username}
-                            Contraseña: ${Utils.getHiddenPassword(user.password)}
-                            Cuenta de Dropbox: ${vinculado}
+                            Tus datos:\n
+                            Nombre de usuario: ${user.username}\n
+                            Contraseña: ${Utils.getHiddenPassword(user.password)}\n
+                            Cuenta de Dropbox: ${vinculado}\n
                         `
                     );
                 } else {
@@ -205,6 +209,10 @@ export class TextManager {
                 }
                 if (state.currentStatus.creatingEvent) {
                     await this.manageInsertingDate(context, calendar);
+                }
+
+                if (state.currentStatus.editingTaskListName) {
+                    await this.changeTaskListName(context);
                 }
 
                 break;
@@ -602,6 +610,25 @@ export class TextManager {
         await context.sendMessage(Messages.CHANGE_PASSWORD);
         state.currentStatus.changingPassword = true;
         state.currentStatus.validatingChangePassword = false;
+        return Promise.resolve();
+    }
+
+    /**
+     * manages change task list name status
+     *
+     * @static
+     * @param {*} context
+     * @returns {Promise<void>}
+     * @memberof TextManager
+     */
+    public static async changeTaskListName(context: any): Promise<void> {
+        await Utils.changeTaskListName(context.state.taskList.id, context.event.text);
+        await context.sendMessage('Lista de tareas actulizada');
+        context.setState({
+            currentStatus: {
+                editingTaskListName: false
+            }
+        });
         return Promise.resolve();
     }
 }

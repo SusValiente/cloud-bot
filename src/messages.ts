@@ -14,6 +14,7 @@ export enum Messages {
     NO_GOOGLE = 'Antes de eso necesito que me des acceso a tu cuenta de Google para asi poder gestionar tu Calendario, para hacerlo entra a tus ajustes desde /settings',
     TASK_LIST_NAME = '¿Como se va a llamar esa lista de tareas?',
     TASK_LIST_DONE = 'Hecho',
+    TASK_LIST_DELETED = 'Lista de tareas eliminada',
     ADD_TASK = '¿En qué consiste la tarea?',
     TASK_LIST_UNDEFINED = 'No hay ninguna lista de tareas seleccionada',
     EMPTY_TASKS = 'No tienes ninguna lista actualmente, ¿Quieres crear una?',
@@ -35,7 +36,9 @@ export enum Messages {
     ASK_GOOGLE = 'Soy capaz de recordarte cualquier cosa que me digas, pero para eso necesito que me vincules con tu cuenta de Google, ¿Estas conforme?',
     CALENDAR = 'Desde aqui puedes gestionar tus proximos eventos de tu Calendario personal, ¿Que quieres hacer?',
     ERROR = 'Parece que algo ha ido mal . . . ¿Porque no lo intentas de nuevo?',
-    USER_FORGOTTEN = 'Vaya, parece que me he olvidado de quien eres, ¿Porque no me refrescas la memoria?, utiliza /start para ello'
+    USER_FORGOTTEN = 'Vaya, parece que me he olvidado de quien eres, ¿Porque no me refrescas la memoria?, utiliza /start para ello',
+    DELETE_USER = 'Estas a punto de eliminar tu cuenta de usuario, esta accion no puede revertirse, ¿Quieres continuar?',
+    DELETED = 'Usario eliminado con éxito'
 }
 
 export const START = `

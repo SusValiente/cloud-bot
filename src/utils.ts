@@ -76,6 +76,24 @@ export class Utils {
     }
 
     /**
+     * @method deleteUser deletes user by its internal id
+     *
+     * @static
+     * @param {string} userId
+     * @returns {Promise<void>}
+     * @memberof Utils
+     */
+    public static async deleteUser(userId: string): Promise<void> {
+        await getConnection()
+            .getRepository(User)
+            .createQueryBuilder()
+            .delete()
+            .where('id = :value', { value: userId })
+            .execute();
+        return Promise.resolve();
+    }
+
+    /**
      * @method getUser returns the user by id
      *
      * @static
@@ -160,6 +178,32 @@ export class Utils {
                 where: { user: loggedUser }
             });
         return Promise.resolve(taskLists);
+    }
+
+    /**
+     * @method changeTaskListName updates the name of a task list
+     *
+     * @static
+     * @param {string} taskListId
+     * @param {string} newName
+     * @returns {Promise<void>}
+     * @memberof Utils
+     */
+    public static async changeTaskListName(taskListId: string, newName: string): Promise<void> {
+        const taskListRepo = await getConnection().getRepository(TaskList);
+        const taskList: ITaskList = await taskListRepo.findOne({
+            where: { id: taskListId }
+        });
+
+        if (_.isNil(taskList)) {
+            return Promise.resolve();
+        }
+
+        taskList.name = newName;
+
+        await taskListRepo.save(taskList);
+
+        return Promise.resolve();
     }
 
     /**

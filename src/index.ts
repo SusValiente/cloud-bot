@@ -15,8 +15,10 @@ import { User } from './entities/user.entity';
 import { IUser } from './models/user.model';
 import { getConnection } from 'typeorm';
 import { IGoogleToken, IGoogleCredential } from './models/googleToken.model';
-import { GoogleUtils } from './googleUtils';
+import { GoogleUtils, IGoogleEvent } from './googleUtils';
 import { GoogleCredential } from './entities/googleCredential.entity';
+import { CronJob } from 'cron';
+import moment from 'moment';
 
 //  JAVASCRIPT IMPORTS
 const { createServer } = require('bottender/express'); // does not have @types
@@ -171,5 +173,46 @@ async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any, calendar: 
         console.log(`server is running on ${process.env.PORT} port...`);
     });
 }
+
+const task = new CronJob('*/1 * * * *', async () => {
+    console.log('You will see this message 1 minute');
+    if (auxiliarContext &&
+        auxiliarContext.state.user &&
+        auxiliarContext.state.user.googleEmail &&
+        auxiliarContext.state.user.googleCredential &&
+        auxiliarContext.state.user.googleCredential.access_token
+    ) {
+        try {
+            let token = auxiliarContext.state.user.googleCredential.access_token;
+            const isExpired = await ggl.isTokenExpired(token);
+            if (isExpired) {
+                token = await ggl.getNewAccessToken(auxiliarContext.state.user.googleCredential.refresh_token);
+            }
+            const nextEvents: IGoogleEvent[] = await ggl.getEvents(token, auxiliarContext.state.user.googleEmail, 10);
+            const now = moment.utc(moment.now()).format();
+            const maxIntervalTime = moment(moment.utc(moment.now()).add(24, 'hours')).format();
+            for (const event of nextEvents) {
+
+                const eventDate = event.startDate;
+
+                console.log('now ->' + moment.isDate(now));
+                console.log('maxinterval ->' + moment.isDate(maxIntervalTime));
+                console.log('eventDate ->' + moment.isDate(eventDate));
+
+                if (moment(eventDate).isBetween(moment.utc(now), moment.utc(maxIntervalTime))) {
+                    await auxiliarContext.sendMessage('Dentro de poco tienes un evento - - -' + event.summary);
+                } else {
+                    console.log('puta mierda esto no va');
+                }
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    } else {
+        console.log('No hay contexto');
+    }
+}, null, true, null);
+
+
 connectTypeorm();
 main(dbx, ggl, client, calendar);

@@ -10,6 +10,7 @@ export interface IGoogleEvent {
     id: string;
     summary: string;
     endDate: string;
+    startDate: string;
     location: string;
 }
 
@@ -135,13 +136,20 @@ export class GoogleUtils {
                     summary: element.summary,
                     endDate: !_.isNil(element.end.date)
                         ? Moment.utc(element.end.date)
-                              .locale('es')
-                              .format('dddd, MMMM Do YYYY, h:mm:ss a')
+                            .locale('es')
+                            .format('dddd, MMMM Do YYYY, h:mm:ss a')
                         : !_.isNil(element.end.dateTime)
-                        ? Moment.utc(element.end.dateTime)
-                              .locale('es')
-                              .format('dddd, MMMM Do YYYY, h:mm:ss a')
-                        : 'No definido',
+                            ? Moment.utc(element.end.dateTime)
+                                .locale('es')
+                                .format('dddd, MMMM Do YYYY, h:mm:ss a')
+                            : 'No definido',
+                    startDate: !_.isNil(element.start.date)
+                        ? Moment(element.start.date)
+                            .format("YYYY-MM-DD[T]HH:mm:ss")
+                        : !_.isNil(element.start.dateTime)
+                            ? Moment(element.start.dateTime)
+                                .format("YYYY-MM-DD[T]HH:mm:ss")
+                            : 'No definido',
                     location: _.isNil(element.location) ? 'No definido' : element.location
                 });
             });

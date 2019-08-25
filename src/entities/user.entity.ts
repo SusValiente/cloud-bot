@@ -1,4 +1,4 @@
-import { Entity, Unique, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, JoinColumn } from 'typeorm';
+import { Entity, Unique, PrimaryGeneratedColumn, Column, OneToMany, OneToOne } from 'typeorm';
 import { IUser } from '../models/user.model';
 import { TaskList } from './taskList.entity';
 import { GoogleCredential } from './googleCredential.entity';
@@ -24,7 +24,6 @@ export class User implements IUser {
     @OneToMany(type => TaskList, list => list.user)
     taskLists: TaskList[];
 
-    @OneToOne(type => GoogleCredential, credential => credential.user)
-    @JoinColumn()
+    @OneToOne(type => GoogleCredential, credential => credential.user, { nullable: true })
     googleCredential: GoogleCredential;
 }

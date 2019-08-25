@@ -19,6 +19,7 @@ import { GoogleUtils, IGoogleEvent } from './googleUtils';
 import { GoogleCredential } from './entities/googleCredential.entity';
 import { CronJob } from 'cron';
 import moment from 'moment';
+import path from 'path';
 
 //  JAVASCRIPT IMPORTS
 const { createServer } = require('bottender/express'); // does not have @types
@@ -49,8 +50,6 @@ const calendar = new Calendar(bot, {
 });
 
 bot.setInitialState(initialState);
-
-const html = '<!DOCTYPE html>\n<html>\n    <head>\n    </head>\n <body>\n      <h1>Puedes volver al bot</h1>\n   </body>\n</html>';
 
 async function connectTypeorm() {
     const connection = await createConnection(options);
@@ -130,7 +129,7 @@ async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any, calendar: 
                 }
             });
         }
-        res.send(html);
+        res.sendFile(path.join(__dirname + './../../success.html'));
         res.end();
     });
 
@@ -155,7 +154,6 @@ async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any, calendar: 
                     refresh_token: token.refresh_token,
                     scope: token.scope,
                     token_type: token.token_type,
-                    id_token: token.id_token,
                     expiry_date: token.expiry_date
                 };
                 findUser.googleEmail = await ggl.getCalendarId(token.access_token);
@@ -164,7 +162,7 @@ async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any, calendar: 
                 await auxiliarContext.sendMessage(Messages.START_FINISHED);
             });
         }
-        res.send(html);
+        res.sendFile(path.join(__dirname + './../../success.html'));
         res.end();
     });
 
@@ -174,45 +172,52 @@ async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any, calendar: 
     });
 }
 
-const task = new CronJob('*/1 * * * *', async () => {
-    console.log('You will see this message 1 minute');
-    if (auxiliarContext &&
-        auxiliarContext.state.user &&
-        auxiliarContext.state.user.googleEmail &&
-        auxiliarContext.state.user.googleCredential &&
-        auxiliarContext.state.user.googleCredential.access_token
-    ) {
-        try {
-            let token = auxiliarContext.state.user.googleCredential.access_token;
-            const isExpired = await ggl.isTokenExpired(token);
-            if (isExpired) {
-                token = await ggl.getNewAccessToken(auxiliarContext.state.user.googleCredential.refresh_token);
-            }
-            const nextEvents: IGoogleEvent[] = await ggl.getEvents(token, auxiliarContext.state.user.googleEmail, 10);
-            const now = moment.utc(moment.now()).format();
-            const maxIntervalTime = moment(moment.utc(moment.now()).add(24, 'hours')).format();
-            for (const event of nextEvents) {
-
-                const eventDate = event.startDate;
-
-                console.log('now ->' + moment.isDate(now));
-                console.log('maxinterval ->' + moment.isDate(maxIntervalTime));
-                console.log('eventDate ->' + moment.isDate(eventDate));
-
-                if (moment(eventDate).isBetween(moment.utc(now), moment.utc(maxIntervalTime))) {
-                    await auxiliarContext.sendMessage('Dentro de poco tienes un evento - - -' + event.summary);
-                } else {
-                    console.log('puta mierda esto no va');
+const task = new CronJob(
+    '1 */1 * * *',
+    async () => {
+        console.log('Cron task every hour and one minute');
+        if (
+            auxiliarContext &&
+            auxiliarContext.state.user &&
+            auxiliarContext.state.user.googleEmail &&
+            auxiliarContext.state.user.googleCredential &&
+            auxiliarContext.state.user.googleCredential.access_token
+        ) {
+            try {
+                let token = auxiliarContext.state.user.googleCredential.access_token;
+                const isExpired = await ggl.isTokenExpired(token);
+                if (isExpired) {
+                    token = await ggl.getNewAccessToken(auxiliarContext.state.user.googleCredential.refresh_token);
                 }
-            }
-        } catch (error) {
-            console.log(error);
-        }
-    } else {
-        console.log('No hay contexto');
-    }
-}, null, true, null);
+                const nextEvents: IGoogleEvent[] = await ggl.getEvents(token, auxiliarContext.state.user.googleEmail, 10);
+                const now = moment.utc(moment.now()).format();
+                const maxIntervalTime = moment(
+                    moment
+                        .utc(moment.now())
+                        .add(1, 'hours')
+                        .add(1, 'minutes')
+                ).format();
+                for (const event of nextEvents) {
+                    const eventDate = event.startDate;
 
+                    if (moment(eventDate).isBetween(moment.utc(now), moment.utc(maxIntervalTime))) {
+                        await auxiliarContext.sendMessage(
+                            `
+                    Dentro de una hora empezará el siguiente evento:\n` + event.summary
+                        );
+                    }
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        } else {
+            console.log('There is no context');
+        }
+    },
+    null,
+    true,
+    null
+);
 
 connectTypeorm();
 main(dbx, ggl, client, calendar);

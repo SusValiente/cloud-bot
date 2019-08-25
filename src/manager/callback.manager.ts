@@ -400,6 +400,59 @@ export class CallbackManager {
                 });
                 break;
 
+            case 'google_settings':
+                if (!this.userStillExistant(context)) {
+                    return Promise.resolve();
+                }
+
+                const oauth2Client2 = new google.auth.OAuth2(
+                    GoogleCredentials.web.client_id,
+                    GoogleCredentials.web.client_secret,
+                    GoogleCredentials.web.redirect_uris[1]
+                );
+
+                google.options({ auth: oauth2Client2 });
+
+                const scopes2 = ['https://www.googleapis.com/auth/calendar'];
+                const authorizeUrl2 = oauth2Client2.generateAuthUrl({
+                    access_type: 'offline',
+                    scope: scopes2.join(' ')
+                });
+
+                await context.sendMessage('Ajustes cuenta de Google', {
+                    reply_markup: {
+                        inline_keyboard: [
+                            [
+                                {
+                                    text: 'Vincular Google',
+                                    url: authorizeUrl2
+                                }
+                            ],
+                            [
+                                {
+                                    text: 'Desvincular Google',
+                                    callback_data: 'unlink_google'
+                                }
+                            ]
+                        ]
+                    }
+                });
+                break;
+
+            case 'unlink_google':
+                if (!this.userStillExistant(context)) {
+                    return Promise.resolve();
+                }
+                const user: IUser = await Utils.getUser(context.state.user.id);
+                if (!user.googleCredential || !user.googleCredential.id) {
+                    await context.sendMessage('No hay ninguna cuenta vinculada');
+                    return Promise.resolve();
+                }
+                await Utils.unlinkGoogle(user.googleCredential.id);
+                await context.sendMessage('Cuenta desvinculada con éxito');
+
+                break;
+
             case 'unlink_dropbox':
                 if (!this.userStillExistant(context)) {
                     return Promise.resolve();

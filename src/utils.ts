@@ -292,4 +292,21 @@ export class Utils {
         credential.access_token = newAccessToken;
         await googleRepo.save(credential);
     }
+
+    /**
+     * @method unlinkGoogle deletes google account
+     *
+     * @param {string} googleId
+     * @returns {Promise<void>}
+     * @memberof Utils
+     */
+    public static async unlinkGoogle(googleId: string): Promise<void> {
+        const googleRepo = await getConnection().getRepository(GoogleCredential);
+        await googleRepo
+            .createQueryBuilder()
+            .delete()
+            .where('id = :value', { value: googleId })
+            .execute();
+        return Promise.resolve();
+    }
 }

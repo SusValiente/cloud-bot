@@ -54,22 +54,24 @@ export class TextManager {
                 if (_.isNil(state.user)) {
                     await context.sendMessage(Messages.DONT_KNOW_YOU);
                 } else {
-                    await context.sendMessage('Ajustes', {
+                    await context.sendMessage('Ajustes de usuario: ', {
                         reply_markup: {
                             inline_keyboard: [
                                 [
                                     {
                                         text: 'Ajustes de Dropbox',
                                         callback_data: 'dropbox_settings'
+                                    },
+                                    {
+                                        text: 'Ajustes de Google',
+                                        callback_data: 'google_settings'
                                     }
                                 ],
                                 [
                                     {
                                         text: 'Cambiar nombre de usuario',
                                         callback_data: 'change_username'
-                                    }
-                                ],
-                                [
+                                    },
                                     {
                                         text: 'Cambiar contraseña',
                                         callback_data: 'change_password'
@@ -79,9 +81,7 @@ export class TextManager {
                                     {
                                         text: 'Cerrar sesión',
                                         callback_data: 'logout'
-                                    }
-                                ],
-                                [
+                                    },
                                     {
                                         text: 'Eliminar cuenta',
                                         callback_data: 'delete_user'
@@ -119,14 +119,15 @@ export class TextManager {
             case '/me':
                 if (context.state.user) {
                     const user = await Utils.getUser(context.state.user.id);
-                    const vinculado = _.isNil(user.dropboxToken) ? 'No vinculada' : 'Vinculada';
-                    // TODO: show only two last characters of password
+                    const dropboxLinked = _.isNil(user.dropboxToken) ? 'No vinculada' : 'Vinculada';
+                    const googleLinked = _.isNil(user.googleCredential) ? 'No vinculada' : 'Vinculada';
                     context.sendMessage(
                         `
                             Tus datos:\n
                             Nombre de usuario: ${user.username}\n
                             Contraseña: ${Utils.getHiddenPassword(user.password)}\n
-                            Cuenta de Dropbox: ${vinculado}\n
+                            Cuenta de Dropbox: ${dropboxLinked}\n
+                            Cuenta de Google: ${googleLinked}
                         `
                     );
                 } else {

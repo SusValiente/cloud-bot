@@ -38,6 +38,7 @@ export interface IChatStatus {
     registering: boolean;
     logging: boolean;
     creatingTaskList: boolean;
+    editingTaskListName: boolean;
     addingTask: boolean;
     changingUsername: boolean;
     validatingChangePassword: boolean;
@@ -60,6 +61,7 @@ export const initialState: IState = {
         insertingEventSummary: false,
         insertingEventLocation: false,
         insertingEventDescription: false,
+        editingTaskListName: false,
         registering: false,
         creatingEvent: false,
         logging: false,

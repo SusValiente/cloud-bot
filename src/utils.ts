@@ -7,8 +7,11 @@ import { TaskList } from './entities/taskList.entity';
 import { ITask } from './models/task.model';
 import { Task } from './entities/task.entity';
 import { Messages } from './messages';
-import { IGoogleCredential } from './models/googleToken.model';
 import { GoogleCredential } from './entities/googleCredential.entity';
+import { sha256 } from 'sha.js';
+import { KEY } from './../config';
+const aes256 = require('aes256');
+
 
 export class Utils {
     /**
@@ -42,9 +45,10 @@ export class Utils {
      */
     public static async registerUser(context: any, givenUsername: string, givenPassword: string): Promise<void> {
         try {
+            const cripto = new sha256();
             const userRepository = await getConnection().getRepository(User);
 
-            const newUser: IUser = await userRepository.save({ username: givenUsername.toLocaleLowerCase(), password: givenPassword });
+            const newUser: IUser = await userRepository.save({ username: givenUsername.toLocaleLowerCase(), password: cripto.update(givenPassword).digest('hex') });
             context.setState({ user: newUser });
             await context.sendMessage(Messages.REGISTERED_COMPLETE);
             return Promise.resolve();
@@ -62,17 +66,45 @@ export class Utils {
      * @memberof Utils
      */
     public static async loginUser(givenUsername: string, givenPassword: string): Promise<IUser> {
+        const cripto = new sha256();
         const user = await getConnection()
             .getRepository(User)
             .findOne({
                 where: {
                     username: givenUsername,
-                    password: givenPassword
+                    password: cripto.update(givenPassword).digest('hex')
                 },
                 relations: ['googleCredential']
             });
 
         return Promise.resolve(user);
+    }
+
+    /**
+     * @method deleteUser deletes user by its internal id
+     *
+     * @static
+     * @param {string} userId
+     * @returns {Promise<void>}
+     * @memberof Utils
+     */
+    public static async deleteUser(userId: string): Promise<void> {
+        const user: IUser = await this.getUser(userId);
+        if (user.googleCredential) {
+            await getConnection()
+                .getRepository(GoogleCredential)
+                .createQueryBuilder()
+                .delete()
+                .where('id = :value', { value: user.googleCredential.id })
+                .execute();
+        }
+        await getConnection()
+            .getRepository(User)
+            .createQueryBuilder()
+            .delete()
+            .where('id = :value', { value: userId })
+            .execute();
+        return Promise.resolve();
     }
 
     /**
@@ -163,6 +195,32 @@ export class Utils {
     }
 
     /**
+     * @method changeTaskListName updates the name of a task list
+     *
+     * @static
+     * @param {string} taskListId
+     * @param {string} newName
+     * @returns {Promise<void>}
+     * @memberof Utils
+     */
+    public static async changeTaskListName(taskListId: string, newName: string): Promise<void> {
+        const taskListRepo = await getConnection().getRepository(TaskList);
+        const taskList: ITaskList = await taskListRepo.findOne({
+            where: { id: taskListId }
+        });
+
+        if (_.isNil(taskList)) {
+            return Promise.resolve();
+        }
+
+        taskList.name = newName;
+
+        await taskListRepo.save(taskList);
+
+        return Promise.resolve();
+    }
+
+    /**
      * @method getTasks returns the list of tasks of a task list
      *
      * @static
@@ -245,7 +303,24 @@ export class Utils {
         if (_.isNil(credential)) {
             return;
         }
-        credential.access_token = newAccessToken;
+        credential.access_token = aes256.encrypt(KEY, newAccessToken);
         await googleRepo.save(credential);
+    }
+
+    /**
+     * @method unlinkGoogle deletes google account
+     *
+     * @param {string} googleId
+     * @returns {Promise<void>}
+     * @memberof Utils
+     */
+    public static async unlinkGoogle(googleId: string): Promise<void> {
+        const googleRepo = await getConnection().getRepository(GoogleCredential);
+        await googleRepo
+            .createQueryBuilder()
+            .delete()
+            .where('id = :value', { value: googleId })
+            .execute();
+        return Promise.resolve();
     }
 }

@@ -1,10 +1,12 @@
 // TYPESCRIPT IMPORTS
-import { config } from '../bottender.config';
+import { config , KEY, GoogleCredentials } from '../config';
 import { ConnectionOptions, createConnection } from 'typeorm';
 import { TextManager } from './manager/text.manager';
 import { CallbackManager } from './manager/callback.manager';
 import { PhotoManager } from './manager/photo.manager';
-import { DocumentManager } from './manager/document.manager';
+import { VideoManager } from './manager/video.manager';
+import { AudioManager } from './manager/audio.manager';
+import { FileManager } from './manager/file.manager';
 import * as _ from 'lodash';
 import { initialState } from './states';
 import { Messages } from './messages';
@@ -13,14 +15,19 @@ import { User } from './entities/user.entity';
 import { IUser } from './models/user.model';
 import { getConnection } from 'typeorm';
 import { IGoogleToken, IGoogleCredential } from './models/googleToken.model';
-import { GoogleUtils } from './googleUtils';
+import { GoogleUtils, IGoogleEvent } from './googleUtils';
 import { GoogleCredential } from './entities/googleCredential.entity';
+import { CronJob } from 'cron';
+import moment from 'moment';
+import { successHTML } from './success';
 
 //  JAVASCRIPT IMPORTS
 const { createServer } = require('bottender/express'); // does not have @types
 const { TelegramBot } = require('bottender');
 const { google } = require('googleapis');
 const Calendar = require('telegraf-calendar-telegram');
+const aes256 = require('aes256');
+
 require('dotenv').config();
 
 // typeorm config
@@ -46,8 +53,6 @@ const calendar = new Calendar(bot, {
 
 bot.setInitialState(initialState);
 
-const html = '<!DOCTYPE html>\n<html>\n    <head>\n    </head>\n <body>\n      <h1>Puedes volver al bot</h1>\n   </body>\n</html>';
-
 async function connectTypeorm() {
     const connection = await createConnection(options);
     if (!_.isNull(connection)) {
@@ -72,10 +77,16 @@ async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any, calendar: 
                 console.log('USER NULL');
             }
             if (context.event.isDocument) {
-                await DocumentManager.manageDocument(context);
+                await FileManager.manageFile(context, dbx, client);
             }
             if (context.event.isPhoto) {
                 await PhotoManager.managePhoto(context, dbx, client);
+            }
+            if (context.event.isVideo) {
+                await VideoManager.manageVideo(context, dbx, client);
+            }
+            if (context.event.isAudio || context.event.isVoice) {
+                await AudioManager.manageAudio(context, dbx, client);
             }
             if (context.event.isText) {
                 await TextManager.manageText(context, dbx, ggl, calendar);
@@ -91,15 +102,27 @@ async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any, calendar: 
     const server = createServer(bot);
 
     server.get('/auth', async (req: any, res: any) => {
-        if (!_.isNil(auxiliarContext.state.user) && !_.isNil(req.query.code)) {
+        if (auxiliarContext && !_.isNil(auxiliarContext.state.user) && !_.isNil(req.query.code)) {
             const userRepository = await getConnection().getRepository(User);
             const user = await userRepository.findOne({ where: { id: auxiliarContext.state.user.id } });
             const token = await dbx.getToken(req.query.code);
-            user.dropboxToken = token;
+            user.dropboxToken = aes256.encrypt(KEY, token);
             await userRepository.save(user);
 
-            const google = new GoogleUtils();
-            const authorizeUrl = google.getAuthorizeUrl();
+            const oauth2Client = new google.auth.OAuth2(
+                GoogleCredentials.web.client_id,
+                GoogleCredentials.web.client_secret,
+                GoogleCredentials.web.redirect_uris[1]
+            );
+
+            google.options({ auth: oauth2Client });
+
+            const scopes = ['https://www.googleapis.com/auth/calendar'];
+            const authorizeUrl = oauth2Client.generateAuthUrl({
+                access_type: 'offline',
+                scope: scopes.join(' '),
+                prompt: 'consent'
+            });
 
             await auxiliarContext.sendMessage(Messages.ASK_GOOGLE, {
                 reply_markup: {
@@ -120,7 +143,7 @@ async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any, calendar: 
                 }
             });
         }
-        res.send(html);
+        res.send(successHTML);
         res.end();
     });
 
@@ -141,11 +164,10 @@ async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any, calendar: 
 
                 const newCredential: IGoogleCredential = {
                     user: findUser,
-                    access_token: token.access_token,
-                    refresh_token: token.refresh_token,
+                    access_token: aes256.encrypt(KEY, token.access_token),
+                    refresh_token: aes256.encrypt(KEY, token.refresh_token),
                     scope: token.scope,
                     token_type: token.token_type,
-                    id_token: token.id_token,
                     expiry_date: token.expiry_date
                 };
                 findUser.googleEmail = await ggl.getCalendarId(token.access_token);
@@ -154,7 +176,7 @@ async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any, calendar: 
                 await auxiliarContext.sendMessage(Messages.START_FINISHED);
             });
         }
-        res.send(html);
+        res.send(successHTML);
         res.end();
     });
 
@@ -163,5 +185,53 @@ async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any, calendar: 
         console.log(`server is running on ${process.env.PORT} port...`);
     });
 }
+
+const task = new CronJob(
+    '1 */1 * * *',
+    async () => {
+        console.log('Cron task every hour and one minute');
+        if (
+            auxiliarContext &&
+            auxiliarContext.state.user &&
+            auxiliarContext.state.user.googleEmail &&
+            auxiliarContext.state.user.googleCredential &&
+            auxiliarContext.state.user.googleCredential.access_token
+        ) {
+            try {
+                let token = auxiliarContext.state.user.googleCredential.access_token;
+                const isExpired = await ggl.isTokenExpired(token);
+                if (isExpired) {
+                    token = await ggl.getNewAccessToken(auxiliarContext.state.user.googleCredential.refresh_token);
+                }
+                const nextEvents: IGoogleEvent[] = await ggl.getEvents(token, auxiliarContext.state.user.googleEmail, 10);
+                const now = moment.utc(moment.now()).format();
+                const maxIntervalTime = moment(
+                    moment
+                        .utc(moment.now())
+                        .add(1, 'hours')
+                        .add(1, 'minutes')
+                ).format();
+                for (const event of nextEvents) {
+                    const eventDate = event.startDate;
+
+                    if (moment(eventDate).isBetween(moment.utc(now), moment.utc(maxIntervalTime))) {
+                        await auxiliarContext.sendMessage(
+                            `
+                    Dentro de una hora empezará el siguiente evento:\n` + event.summary
+                        );
+                    }
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        } else {
+            console.log('There is no context');
+        }
+    },
+    null,
+    true,
+    null
+);
+
 connectTypeorm();
 main(dbx, ggl, client, calendar);

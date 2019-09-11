@@ -8,7 +8,7 @@ import { Task } from '../entities/task.entity';
 import { TaskList } from '../entities/taskList.entity';
 import { DropboxUtils } from '../dropboxUtils';
 import { IUser } from '../models/user.model';
-import { GoogleCredentials } from '../../credentials';
+import { GoogleCredentials } from './../../config';
 import { GoogleUtils, IGoogleEvent } from '../googleUtils';
 import { dayHours, durations } from './../models/time.model';
 
@@ -27,6 +27,9 @@ export class CallbackManager {
         const viewRegex: RegExp = new RegExp('view/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/task-list');
         const completeTaskRegex: RegExp = new RegExp('complete/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/task');
         const deleteTaskListRegex: RegExp = new RegExp('delete/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/task-list');
+        const editTaskListRegex: RegExp = new RegExp('edit/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/task-list');
+        const changeTaskListNameRegexp: RegExp = new RegExp('change/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/task-list');
+        const addTaskRegexp: RegExp = new RegExp('add/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/task-list');
         const deleteEventRegex: RegExp = new RegExp('d/.*/e');
         const dateRegexp: RegExp = new RegExp('calendar-telegram-date-.*');
         const alsoDateRegexp: RegExp = new RegExp('calendar-telegram-ignore-([12]\\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01]))');
@@ -43,6 +46,56 @@ export class CallbackManager {
             await this.getTaskList(context.event.payload, context);
             return Promise.resolve();
         }
+
+        // edit task list
+        if (editTaskListRegex.test(context.event.payload)) {
+            if (!this.userStillExistant(context)) {
+                return Promise.resolve();
+            }
+            const taskListId: string = context.event.payload.split('/')[1];
+            await context.sendMessage('¿Que quieres hacer con esta lista?', {
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            {
+                                text: 'Cambiar nombre',
+                                callback_data: 'change/' + taskListId + '/task-list'
+                            },
+                            {
+                                text: 'Añadir tareas',
+                                callback_data: 'add/' + taskListId + '/task-list'
+                            }
+                        ]
+                    ]
+                }
+            });
+        }
+        // change task list name
+        if (changeTaskListNameRegexp.test(context.event.payload)) {
+            if (!this.userStillExistant(context)) {
+                return Promise.resolve();
+            }
+            await context.sendMessage('¿Como deberia de llamarse esta lista?');
+            const taskListId: string = context.event.payload.split('/')[1];
+            context.setState({
+                currentStatus: {
+                    editingTaskListName: true
+                },
+                taskList: {
+                    id: taskListId
+                }
+            });
+            return Promise.resolve();
+        }
+
+        if (addTaskRegexp.test(context.event.payload)) {
+            if (!this.userStillExistant(context)) {
+                return Promise.resolve();
+            }
+            state.currentStatus.addingTask = true;
+            await context.sendMessage(Messages.ADD_TASK);
+        }
+
         // complete task
         if (completeTaskRegex.test(context.event.payload)) {
             if (!this.userStillExistant(context)) {
@@ -204,7 +257,7 @@ export class CallbackManager {
                 const oauth2Client = new google.auth.OAuth2(
                     GoogleCredentials.web.client_id,
                     GoogleCredentials.web.client_secret,
-                    GoogleCredentials.web.redirect_uris[0]
+                    GoogleCredentials.web.redirect_uris[1]
                 );
 
                 google.options({ auth: oauth2Client });
@@ -285,9 +338,7 @@ export class CallbackManager {
                                     {
                                         text: 'Si',
                                         callback_data: 'create_task_list'
-                                    }
-                                ],
-                                [
+                                    },
                                     {
                                         text: 'No',
                                         callback_data: 'dont_create_task_list'
@@ -306,6 +357,12 @@ export class CallbackManager {
                                             text: 'Ver lista',
                                             callback_data: 'view/' + list.id + '/task-list'
                                         },
+                                        {
+                                            text: 'Editar lista',
+                                            callback_data: 'edit/' + list.id + '/task-list'
+                                        }
+                                    ],
+                                    [
                                         {
                                             text: 'Borrar lista',
                                             callback_data: 'delete/' + list.id + '/task-list'
@@ -341,6 +398,59 @@ export class CallbackManager {
                         ]
                     }
                 });
+                break;
+
+            case 'google_settings':
+                if (!this.userStillExistant(context)) {
+                    return Promise.resolve();
+                }
+
+                const oauth2Client2 = new google.auth.OAuth2(
+                    GoogleCredentials.web.client_id,
+                    GoogleCredentials.web.client_secret,
+                    GoogleCredentials.web.redirect_uris[1]
+                );
+
+                google.options({ auth: oauth2Client2 });
+
+                const scopes2 = ['https://www.googleapis.com/auth/calendar'];
+                const authorizeUrl2 = oauth2Client2.generateAuthUrl({
+                    access_type: 'offline',
+                    scope: scopes2.join(' ')
+                });
+
+                await context.sendMessage('Ajustes cuenta de Google', {
+                    reply_markup: {
+                        inline_keyboard: [
+                            [
+                                {
+                                    text: 'Vincular Google',
+                                    url: authorizeUrl2
+                                }
+                            ],
+                            [
+                                {
+                                    text: 'Desvincular Google',
+                                    callback_data: 'unlink_google'
+                                }
+                            ]
+                        ]
+                    }
+                });
+                break;
+
+            case 'unlink_google':
+                if (!this.userStillExistant(context)) {
+                    return Promise.resolve();
+                }
+                const user: IUser = await Utils.getUser(context.state.user.id);
+                if (!user.googleCredential || !user.googleCredential.id) {
+                    await context.sendMessage('No hay ninguna cuenta vinculada');
+                    return Promise.resolve();
+                }
+                await Utils.unlinkGoogle(user.googleCredential.id);
+                await context.sendMessage('Cuenta desvinculada con éxito');
+
                 break;
 
             case 'unlink_dropbox':
@@ -463,6 +573,34 @@ export class CallbackManager {
 
                 break;
 
+            case 'delete_user':
+                if (!this.userStillExistant(context)) {
+                    return Promise.resolve();
+                }
+                await context.sendMessage(Messages.DELETE_USER, {
+                    reply_markup: {
+                        inline_keyboard: [
+                            [
+                                {
+                                    text: 'Borrar mi cuenta',
+                                    callback_data: 'confirm_delete'
+                                }
+                            ]
+                        ]
+                    }
+                });
+
+                break;
+
+            case 'confirm_delete':
+                if (!this.userStillExistant(context)) {
+                    return Promise.resolve();
+                }
+                await Utils.deleteUser(context.state.user.id);
+                dbx.setToken(null);
+                context.setState(initialState);
+                await context.sendMessage(Messages.DELETED);
+                break;
             default:
                 break;
         }
@@ -565,7 +703,7 @@ export class CallbackManager {
             .delete()
             .where('id = :value', { value: taskListId })
             .execute();
-        await context.sendMessage(Messages.TASK_COMPLETED);
+        await context.sendMessage(Messages.TASK_LIST_DELETED);
         return Promise.resolve();
     }
 

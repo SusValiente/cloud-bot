@@ -7,7 +7,7 @@ import { TaskList } from '../entities/taskList.entity';
 import { ITaskList } from '../models/taskList.model';
 import { Task } from '../entities/task.entity';
 import { DropboxUtils } from '../dropboxUtils';
-import { GoogleCredentials } from '../../credentials';
+import { GoogleCredentials } from '../../config';
 import { GoogleUtils } from '../googleUtils';
 const { google } = require('googleapis');
 
@@ -54,22 +54,24 @@ export class TextManager {
                 if (_.isNil(state.user)) {
                     await context.sendMessage(Messages.DONT_KNOW_YOU);
                 } else {
-                    await context.sendMessage('Ajustes', {
+                    await context.sendMessage('Ajustes de usuario: ', {
                         reply_markup: {
                             inline_keyboard: [
                                 [
                                     {
                                         text: 'Ajustes de Dropbox',
                                         callback_data: 'dropbox_settings'
+                                    },
+                                    {
+                                        text: 'Ajustes de Google',
+                                        callback_data: 'google_settings'
                                     }
                                 ],
                                 [
                                     {
                                         text: 'Cambiar nombre de usuario',
                                         callback_data: 'change_username'
-                                    }
-                                ],
-                                [
+                                    },
                                     {
                                         text: 'Cambiar contraseña',
                                         callback_data: 'change_password'
@@ -79,6 +81,10 @@ export class TextManager {
                                     {
                                         text: 'Cerrar sesión',
                                         callback_data: 'logout'
+                                    },
+                                    {
+                                        text: 'Eliminar cuenta',
+                                        callback_data: 'delete_user'
                                     }
                                 ]
                             ]
@@ -98,9 +104,7 @@ export class TextManager {
                                     {
                                         text: 'Ver listas de tareas',
                                         callback_data: 'task_list'
-                                    }
-                                ],
-                                [
+                                    },
                                     {
                                         text: 'Crear lista de tareas',
                                         callback_data: 'create_task_list'
@@ -115,14 +119,15 @@ export class TextManager {
             case '/me':
                 if (context.state.user) {
                     const user = await Utils.getUser(context.state.user.id);
-                    const vinculado = _.isNil(user.dropboxToken) ? 'No vinculada' : 'Vinculada';
-                    // TODO: show only two last characters of password
+                    const dropboxLinked = _.isNil(user.dropboxToken) ? 'No vinculada' : 'Vinculada';
+                    const googleLinked = _.isNil(user.googleCredential) ? 'No vinculada' : 'Vinculada';
                     context.sendMessage(
                         `
-                            Tus datos:
-                            Nombre de usuario: ${user.username}
-                            Contraseña: ${Utils.getHiddenPassword(user.password)}
-                            Cuenta de Dropbox: ${vinculado}
+                            Tus datos:\n
+                            Nombre de usuario: ${user.username}\n
+                            Contraseña: ${Utils.getHiddenPassword(user.password)}\n
+                            Cuenta de Dropbox: ${dropboxLinked}\n
+                            Cuenta de Google: ${googleLinked}
                         `
                     );
                 } else {
@@ -205,6 +210,10 @@ export class TextManager {
                 }
                 if (state.currentStatus.creatingEvent) {
                     await this.manageInsertingDate(context, calendar);
+                }
+
+                if (state.currentStatus.editingTaskListName) {
+                    await this.changeTaskListName(context);
                 }
 
                 break;
@@ -338,6 +347,7 @@ export class TextManager {
                 next = false;
             } else {
                 await context.sendMessage(Messages.START_NAME_TAKEN);
+                return Promise.resolve();
             }
         }
         if (state.currentStatus.insertingPassword && _.isNil(state.userData.password) && next) {
@@ -376,7 +386,7 @@ export class TextManager {
             const oauth2Client = new google.auth.OAuth2(
                 GoogleCredentials.web.client_id,
                 GoogleCredentials.web.client_secret,
-                GoogleCredentials.web.redirect_uris[0]
+                GoogleCredentials.web.redirect_uris[1]
             );
 
             google.options({ auth: oauth2Client });
@@ -601,6 +611,25 @@ export class TextManager {
         await context.sendMessage(Messages.CHANGE_PASSWORD);
         state.currentStatus.changingPassword = true;
         state.currentStatus.validatingChangePassword = false;
+        return Promise.resolve();
+    }
+
+    /**
+     * manages change task list name status
+     *
+     * @static
+     * @param {*} context
+     * @returns {Promise<void>}
+     * @memberof TextManager
+     */
+    public static async changeTaskListName(context: any): Promise<void> {
+        await Utils.changeTaskListName(context.state.taskList.id, context.event.text);
+        await context.sendMessage('Lista de tareas actulizada');
+        context.setState({
+            currentStatus: {
+                editingTaskListName: false
+            }
+        });
         return Promise.resolve();
     }
 }

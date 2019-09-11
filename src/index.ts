@@ -1,5 +1,5 @@
 // TYPESCRIPT IMPORTS
-import { config } from '../bottender.config';
+import { config , KEY, GoogleCredentials } from '../config';
 import { ConnectionOptions, createConnection } from 'typeorm';
 import { TextManager } from './manager/text.manager';
 import { CallbackManager } from './manager/callback.manager';
@@ -19,13 +19,15 @@ import { GoogleUtils, IGoogleEvent } from './googleUtils';
 import { GoogleCredential } from './entities/googleCredential.entity';
 import { CronJob } from 'cron';
 import moment from 'moment';
-import path from 'path';
+import { successHTML } from './success';
 
 //  JAVASCRIPT IMPORTS
 const { createServer } = require('bottender/express'); // does not have @types
 const { TelegramBot } = require('bottender');
 const { google } = require('googleapis');
 const Calendar = require('telegraf-calendar-telegram');
+const aes256 = require('aes256');
+
 require('dotenv').config();
 
 // typeorm config
@@ -104,11 +106,23 @@ async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any, calendar: 
             const userRepository = await getConnection().getRepository(User);
             const user = await userRepository.findOne({ where: { id: auxiliarContext.state.user.id } });
             const token = await dbx.getToken(req.query.code);
-            user.dropboxToken = token;
+            user.dropboxToken = aes256.encrypt(KEY, token);
             await userRepository.save(user);
 
-            const google = new GoogleUtils();
-            const authorizeUrl = google.getAuthorizeUrl();
+            const oauth2Client = new google.auth.OAuth2(
+                GoogleCredentials.web.client_id,
+                GoogleCredentials.web.client_secret,
+                GoogleCredentials.web.redirect_uris[1]
+            );
+
+            google.options({ auth: oauth2Client });
+
+            const scopes = ['https://www.googleapis.com/auth/calendar'];
+            const authorizeUrl = oauth2Client.generateAuthUrl({
+                access_type: 'offline',
+                scope: scopes.join(' '),
+                prompt: 'consent'
+            });
 
             await auxiliarContext.sendMessage(Messages.ASK_GOOGLE, {
                 reply_markup: {
@@ -129,7 +143,7 @@ async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any, calendar: 
                 }
             });
         }
-        res.sendFile(path.join(__dirname + './../../success.html'));
+        res.send(successHTML);
         res.end();
     });
 
@@ -150,8 +164,8 @@ async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any, calendar: 
 
                 const newCredential: IGoogleCredential = {
                     user: findUser,
-                    access_token: token.access_token,
-                    refresh_token: token.refresh_token,
+                    access_token: aes256.encrypt(KEY, token.access_token),
+                    refresh_token: aes256.encrypt(KEY, token.refresh_token),
                     scope: token.scope,
                     token_type: token.token_type,
                     expiry_date: token.expiry_date
@@ -162,7 +176,7 @@ async function main(dbx: DropboxUtils, ggl: GoogleUtils, client: any, calendar: 
                 await auxiliarContext.sendMessage(Messages.START_FINISHED);
             });
         }
-        res.sendFile(path.join(__dirname + './../../success.html'));
+        res.send(successHTML);
         res.end();
     });
 

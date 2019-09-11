@@ -8,7 +8,7 @@ import { Task } from '../entities/task.entity';
 import { TaskList } from '../entities/taskList.entity';
 import { DropboxUtils } from '../dropboxUtils';
 import { IUser } from '../models/user.model';
-import { GoogleCredentials } from '../../credentials';
+import { GoogleCredentials } from './../../config';
 import { GoogleUtils, IGoogleEvent } from '../googleUtils';
 import { dayHours, durations } from './../models/time.model';
 

@@ -1,8 +1,8 @@
 import fetch from 'isomorphic-fetch';
 import { Dropbox } from 'dropbox';
-import { DropboxConfig } from './../dropbox.config';
-import { config } from './../bottender.config';
-
+import { DropboxConfig, KEY, config } from './../config';
+import * as _ from 'lodash';
+const aes256 = require('aes256');
 /**
  * Class DropboxUtils that manages calls to the Dropbox API
  *
@@ -40,6 +40,9 @@ export class DropboxUtils {
      * @memberof DropboxUtils
      */
     setToken(token: string): void {
+        if (!_.isNil(token)) {
+            token = aes256.decrypt(KEY, token);
+        }
         this.dbx.setAccessToken(token);
         return;
     }
@@ -89,18 +92,19 @@ export class DropboxUtils {
         }
     }
 
-    /**
-     * @method getFiles returns the list of files of a folder
-     *
-     * @param {string} path
-     * @param {number} limitEntries
-     * @returns {Promise<DropboxTypes.files.ListFolderResult>}
-     * @memberof DropboxUtils
-     */
-    async getFiles(path: string, limitEntries: number): Promise<DropboxTypes.files.ListFolderResult> {
-        const photos = await this.dbx.filesListFolder({ path: path, limit: limitEntries });
-        return Promise.resolve(photos);
-    }
+    // Unused for now
+    // /**
+    //  * @method getFiles returns the list of files of a folder
+    //  *
+    //  * @param {string} path
+    //  * @param {number} limitEntries
+    //  * @returns {Promise<DropboxTypes.files.ListFolderResult>}
+    //  * @memberof DropboxUtils
+    //  */
+    // async getFiles(path: string, limitEntries: number): Promise<DropboxTypes.files.ListFolderResult> {
+    //     const photos = await this.dbx.filesListFolder({ path: path, limit: limitEntries });
+    //     return Promise.resolve(photos);
+    // }
 
     unlinkDropboxAccount() {
         this.dbx.authTokenRevoke();

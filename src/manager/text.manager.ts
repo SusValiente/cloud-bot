@@ -7,7 +7,7 @@ import { TaskList } from '../entities/taskList.entity';
 import { ITaskList } from '../models/taskList.model';
 import { Task } from '../entities/task.entity';
 import { DropboxUtils } from '../dropboxUtils';
-import { GoogleCredentials } from '../../credentials';
+import { GoogleCredentials } from '../../config';
 import { GoogleUtils } from '../googleUtils';
 const { google } = require('googleapis');
 

@@ -70,9 +70,9 @@ Muchas gracias por usar mis servicios!
 
     Lista de comandos disponibles:
      /start Reiniciar bot
+     /calendar Gestionar eventos de calendario
      /help  Mostrar ayuda y comandos disponibles
      /settings Mostrar ajustes de usuario
      /task Abrir el gestor de tareas
      /me    Informacion sobre el usuario conectado
-     /testing (Solo para el programador) NO TOCAR O ME ENFADO !
      `;

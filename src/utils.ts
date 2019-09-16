@@ -277,19 +277,6 @@ export class Utils {
     }
 
     /**
-     * @method getHiddenPassword returns the password of the user in hidden format
-     *
-     * @static
-     * @param {string} password
-     * @returns {string}
-     * @memberof Utils
-     */
-    public static getHiddenPassword(password: string): string {
-        const hiddenPassword = password[0] + '******' + password[password.length - 1];
-        return hiddenPassword;
-    }
-
-    /**
      * update access token of google credential in database
      *
      * @param {string} idCredential

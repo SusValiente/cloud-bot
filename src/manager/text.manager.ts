@@ -125,7 +125,6 @@ export class TextManager {
                         `
                             Tus datos:\n
                             Nombre de usuario: ${user.username}\n
-                            Contraseña: ${Utils.getHiddenPassword(user.password)}\n
                             Cuenta de Dropbox: ${dropboxLinked}\n
                             Cuenta de Google: ${googleLinked}
                         `

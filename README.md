@@ -25,7 +25,7 @@ Makes your server visible to the Internet via [pagekite](https://pagekite.net/wi
 sets the Telegram Webhook whith this URL, this is mandatory in order to make the bot work.
 
 
-### `npm prettier:write`
+### `npm run prettier:write`
 
 Prettyfies the code, it is important to keep code clean.
 

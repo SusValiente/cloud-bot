@@ -19,7 +19,7 @@ By default it will run in 80 port. \
 It will automatically restart the bot if there are any changes.\
 For more information, check [nodemon's repo](https://github.com/remy/nodemon)
 
-### `npm start set`
+### `npm run set`
 
 Makes your server visible to the Internet via [pagekite](https://pagekite.net/wiki/OpenSource/), then it creates an estatic URL and
 sets the Telegram Webhook whith this URL, this is mandatory in order to make the bot work.
